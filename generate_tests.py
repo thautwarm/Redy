@@ -4,9 +4,8 @@ from Redy.Collections.Traversal import *
 from Redy.Collections import *
 from Redy.Tools import PathLib, Path
 
-from Redy.Collections import Traversal
-from Redy.Collections import Core
-from Redy.Async import Accompany
+from Redy.Collections import Core, Graph, Traversal
+from Redy.Async import Accompany, Delegate
 
 pattern_clear = re.compile('\s+\>\>\> ')
 
@@ -62,3 +61,5 @@ if __name__ == '__main__':
     generate_doc_for(Core)
     generate_doc_for(Accompany)
     generate_doc_for(PathLib)
+    generate_doc_for(Delegate)
+    generate_doc_for(Graph)

@@ -6,6 +6,7 @@ __all__ = ['map_by', 'reduce_by', 'fold_by', 'sum_from', 'each_do', 'filter_by',
 
 ActualIterable = Union[Iterable, Iterable, Sequence, Collection]
 
+
 def map_by(fn: Callable[[T1], T2]) -> Callable[[ActualIterable[T1]], Iterable[T2]]:
     """
     when pycharm supports type hinting for any implementation of currying,
@@ -53,11 +54,14 @@ def filter_by(fn: Callable[[T], bool]) -> Callable[[ActualIterable[T]], Iterable
     return lambda collection: builtins.filter(fn, collection)
 
 
-def sum_from(zero: T1) -> Callable[[ActualIterable[T1]], T1]:
+def sum_from(zero: T1 = None) -> Callable[[ActualIterable[T1]], T1]:
     """
     >>> from Redy.Collections import Traversal, Flow
     >>> lst: Iterable[int] = [1, 2, 3]
     >>> x = Flow(lst)[Traversal.sum_from(0)].unbox
+    >>> assert x is 6
+
+    >>> x = Flow(lst)[Traversal.sum_from()].unbox
     >>> assert x is 6
     """
 

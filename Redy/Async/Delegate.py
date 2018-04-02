@@ -3,8 +3,23 @@ from Redy.Types import *
 
 _Action = Callable[[T, TE, TR], None]
 
+__all__ = ['Delegate']
+
 
 class Delegate:
+    """
+    >>> from Redy.Async.Delegate import Delegate
+    >>> action = lambda task, product, globals: print(task.__name__)
+    >>> delegate = Delegate(action)
+    >>> def action2(task, product, globals):
+    >>>     print(product)
+    # insert at the end
+    >>> delegate.insert(action2, Delegate.Where.after(lambda _: False))
+    >>> delegate.insert(action, Delegate.Where.before(lambda _: _.__name__ == 'action2'))
+    >>> delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
+    >>> delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
+    """
+
     def __init__(self,
                  actions: Union[Iterable[_Action], _Action] = ()) -> None:
         self.actions = list(actions) if isinstance(actions,
@@ -24,6 +39,7 @@ class Delegate:
         >>> delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
         """
         self.actions.append(other)
+        return self
 
     def add(self, other):
         """
@@ -58,11 +74,13 @@ class Delegate:
             self.cond = cond
             self.before_or_after = option
 
-        def after(self, cond):
-            return Delegate.Where(cond, Delegate._WhereDescriptor.after)
+        @classmethod
+        def after(cls, cond):
+            return cls(cond, Delegate._WhereDescriptor.after)
 
-        def before(self, cond):
-            return Delegate.Where(cond, Delegate._WhereDescriptor.before)
+        @classmethod
+        def before(cls, cond):
+            return cls(cond, Delegate._WhereDescriptor.before)
 
         def __call__(self, actions: List[Action]):
             i = 0

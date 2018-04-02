@@ -17,8 +17,12 @@ class Path:
     >>> p.__iter__()
     >>> new = p.into('justfortest')
     >>> new.mkdir()
+    >>> new.mkdir()
     >>> new.delete()
     >>> p.relative()
+    >>> new.open('w')
+    >>> new.delete()
+
     """
     __slots__ = ["_path"]
 

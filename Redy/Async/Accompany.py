@@ -1,6 +1,5 @@
 import logging
 import threading
-from Redy.Function import identity
 from Redy.Types import *
 
 from .Delegate import Delegate
@@ -67,7 +66,7 @@ class Accompany(Generic[T, TR, TE]):
 
         # user-writable
         self.target = target
-        self.descriptor_mapping = descriptor_mapping if descriptor_mapping else identity
+        self.descriptor_mapping = descriptor_mapping if descriptor_mapping else lambda x: x
         self.events = events if events else {}
         self.product = None
         self.lock = threading.Lock()

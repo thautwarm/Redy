@@ -1,7 +1,8 @@
 from ..Types import *
-from ..Function import identity
 
-__all__ = ['Flow', 'Monadic', 'id_monad']
+__all__ = ['Flow', 'Monadic']
+
+
 class Flow(Generic[T]):
     __slots__ = ['within']
 
@@ -73,8 +74,3 @@ class Monadic(Iterable, Generic[T, TR]):
         so I use `then` method as an alternative temporarily.
         """
         return Monadic(self._fns + (other,))
-
-
-id_monad = Monadic(identity)
-
-

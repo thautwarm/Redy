@@ -23,6 +23,8 @@ from Redy.Collections import Traversal, Flow
 lst: Iterable[int] = [1, 2, 3]
 x = Flow(lst)[Traversal.sum_from(0)].unbox
 assert x is 6
+x = Flow(lst)[Traversal.sum_from()].unbox
+assert x is 6
 
 from Redy.Collections import Traversal, Flow
 lst: Iterable[int] = [1, 2, 3]
