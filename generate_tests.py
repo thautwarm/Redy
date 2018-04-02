@@ -34,7 +34,7 @@ def generate_doc_for(module: Mapping[str, object]):
         root = root.parent()
     directory = root.parent().__str__()
     path = Path(directory, 'tests', str(path)[len(str(root)) + 1:])
-    print(path)
+    print(f'generating the test script for {path}')
     path.parent().mkdir()
 
     __all__ = [getattr(module, k) for k in module.__all__]
@@ -43,7 +43,7 @@ def generate_doc_for(module: Mapping[str, object]):
         doc: str = each.__doc__
         if not doc:
             continue
-        Flow(doc.splitlines())[
+        nil = Flow(doc.splitlines())[
             filter_by(locate)
         ][
             map_by(rep)

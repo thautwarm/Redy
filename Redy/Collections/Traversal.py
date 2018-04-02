@@ -1,6 +1,5 @@
 import builtins
 from ..Types import *
-from ..Utils import doc_test
 import functools
 
 __all__ = ['map_by', 'reduce_by', 'fold_by', 'sum_from', 'each_do', 'filter_by', 'flatten_to']

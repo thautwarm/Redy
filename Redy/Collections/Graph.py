@@ -1,5 +1,5 @@
 """
-This module is for the support of graph engine service.
+This module is for loading graph engine services.
 """
 
 from ..Types import *
