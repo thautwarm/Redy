@@ -15,23 +15,30 @@ task: Accompany[None, str, Type[str]] = Accompany(
     descriptor_mapping=lambda _: descriptor_mapping(_),
     events={str: Delegate(act1)})
 task.run()
-added = False
-def exit_thread(task, product, ctx): print('exit'); raise ThreadExit
+new_action_added = False
 while task.running:
    print('running')
-   if not added:
+   if not new_action_added:
        task.events[str].insert(
            lambda _, product, ctx: print(product) or time.sleep(delta),
            where=0)
-       added = True
-   else:
-       task.events[str].insert(exit_thread, 0)
+       new_action_added = True
+   time.sleep(0.1)
+has_added_exit_method = False
+def exit_thread(task, product, ctx):
+    print('exit')
+    raise ThreadExit  # just raise `ThreadExit` and you can exit a thread.
+task.run()
+while task.running:
+   print('running')
+   if not has_added_exit_method:
+        task.events[str].insert(exit_thread, where=0)
+        has_added_exit_method = True
    time.sleep(0.1)
 task.run()
 task.cancel()
 task.events = {str: Delegate(act1)}
 task.run()
-# task.cancel()
 task.wait()
 test_file.delete()
 print(f"finished?: {task.finished}")

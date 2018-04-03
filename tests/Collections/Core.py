@@ -7,7 +7,7 @@ def f2s(x: float) -> str: return str(x)
 def s2f(x: str) -> float: return float(x)
 def f2i(x: float) -> int: return int(x)
 def i2s(x: int) -> str:   return str(x)
-z = Monadic(i2f)
+z = Monad(i2f)
 d = z[
     f2s
 ][
@@ -18,4 +18,6 @@ d = z[
     i2s
 ]
 _ = d.call(1)
-print(_, _.__class__)
+print(_)
+assert _.__class__ is str
+assert Monad(())(...) is None

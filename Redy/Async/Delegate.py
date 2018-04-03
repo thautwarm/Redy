@@ -8,6 +8,7 @@ __all__ = ['Delegate']
 
 class Delegate:
     """
+    `delegate` represents a series of actions sharing the same context.
     >>> from Redy.Async.Delegate import Delegate
     >>> action = lambda task, product, globals: print(task.__name__)
     >>> delegate = Delegate(action)

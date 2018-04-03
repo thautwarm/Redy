@@ -1,6 +1,6 @@
 from ..Types import *
 
-__all__ = ['Flow', 'Monadic']
+__all__ = ['Flow', 'Monad']
 
 
 class Flow(Generic[T]):
@@ -17,15 +17,17 @@ class Flow(Generic[T]):
         return self.within
 
 
-class Monadic(Iterable, Generic[T, TR]):
+class Monad(Iterable, Generic[T, TR]):
     """
+    Monad: mapping among types that preserves identity morphisms and composition of morphisms.
+    Monad[A, B]: a type of mapping A to B.
     >>> from Redy.Collections.Core import *
     >>> def i2f(x: int) -> float: return x * 1.0
     >>> def f2s(x: float) -> str: return str(x)
     >>> def s2f(x: str) -> float: return float(x)
     >>> def f2i(x: float) -> int: return int(x)
     >>> def i2s(x: int) -> str:   return str(x)
-    >>> z = Monadic(i2f)
+    >>> z = Monad(i2f)
     >>> d = z[
     >>>     f2s
     >>> ][
@@ -35,8 +37,12 @@ class Monadic(Iterable, Generic[T, TR]):
     >>> ][
     >>>     i2s
     >>> ]
+    # feel free to use `d(1)`, however the type hinting fails(Pycharm is to blame here...)
+    # P.S: codes like`f: Monad[int, int]; f(1)` can be handled correctly by `mypy`.
     >>> _ = d.call(1)
-    >>> print(_, _.__class__)
+    >>> print(_)
+    >>> assert _.__class__ is str
+    >>> assert Monad(())(...) is None
     """
     __slots__ = ['_fns']
 
@@ -68,9 +74,9 @@ class Monadic(Iterable, Generic[T, TR]):
         """
         return self.__call__(arg)
 
-    def __getitem__(self, other: Callable[[TR], TE]) -> 'Monadic[T, TE]':
+    def __getitem__(self, other: Callable[[TR], TE]) -> 'Monad[T, TE]':
         """
         The type inference of __call__ in pycharm is not powerful enough currently,
         so I use `then` method as an alternative temporarily.
         """
-        return Monadic(self._fns + (other,))
+        return Monad(self._fns + (other,))
