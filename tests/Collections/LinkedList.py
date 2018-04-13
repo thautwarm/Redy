@@ -24,3 +24,41 @@ except Exception as e:
 z = LinkedList(2)
 z.next = x
 print(z)
+
+from Redy.Collections.LinkedList import zero_list, ZeroList
+print(zero_list)
+if not zero_list:
+    print('test as false')
+try:
+    zero_list.next
+except StopIteration:
+    print('expected exception')
+except Exception as e:
+    raise e
+try:
+    zero_list.any = 1
+except ValueError:
+    print('expected error')
+except Exception as e:
+    raise e
+zero_list_ = ZeroList()
+assert zero_list is zero_list_
+
+from Redy.Collections.LinkedList import zero_list, ZeroList
+print(zero_list)
+if not zero_list:
+    print('test as false')
+try:
+    zero_list.next
+except StopIteration:
+    print('expected exception')
+except Exception as e:
+    raise e
+try:
+    zero_list.any = 1
+except ValueError:
+    print('expected error')
+except Exception as e:
+    raise e
+zero_list_ = ZeroList()
+assert zero_list is zero_list_

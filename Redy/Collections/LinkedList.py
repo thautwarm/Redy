@@ -1,6 +1,7 @@
 from ..Types import *
+from ..Magic.classic import singleton
 
-__all__ = ['LinkedList']
+__all__ = ['LinkedList', 'ZeroList', 'zero_list']
 
 
 class LinkedList(Iterable[T]):
@@ -48,7 +49,7 @@ class LinkedList(Iterable[T]):
         elif isinstance(next, Iterable):
             self._next = iter(next)
         elif next is None:
-            self._next = None
+            self._next = zero_list
         else:
             raise TypeError
 
@@ -65,7 +66,7 @@ class LinkedList(Iterable[T]):
     @property
     def next(self) -> 'Optional[LinkedList[T]]':
         if not self._next:
-            return None
+            return zero_list
 
         if not isinstance(self._next, LinkedList):
             self._next = LinkedList(next(self._next), self._next)
@@ -89,3 +90,50 @@ class LinkedList(Iterable[T]):
 
     def __repr__(self):
         return self.__str__()
+
+
+@singleton
+class ZeroList(LinkedList):
+    """
+    >>> from Redy.Collections.LinkedList import zero_list, ZeroList
+    >>> print(zero_list)
+    >>> if not zero_list:
+    >>>     print('test as false')
+    >>> try:
+    >>>     zero_list.next
+    >>> except StopIteration:
+    >>>     print('expected exception')
+    >>> except Exception as e:
+    >>>     raise e
+    >>> try:
+    >>>     zero_list.any = 1
+    >>> except ValueError:
+    >>>     print('expected error')
+    >>> except Exception as e:
+    >>>     raise e
+    >>> zero_list_ = ZeroList()
+    >>> assert zero_list is zero_list_
+
+    """
+
+    __slots__ = []
+
+    # noinspection SpellCheckingInspection
+    def __init__(self):
+        pass
+
+    def __iter__(self):
+        yield from ()
+
+    @property
+    def next(self):
+        raise StopIteration
+
+    def __bool__(self):
+        return False
+
+    def __setattr__(self, key, value):
+        raise ValueError('empty list is readonly')
+
+
+zero_list = ZeroList()
