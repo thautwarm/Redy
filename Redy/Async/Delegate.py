@@ -19,6 +19,8 @@ class Delegate:
     >>> delegate.insert(action, Delegate.Where.before(lambda _: _.__name__ == 'action2'))
     >>> delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
     >>> delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
+    >>> fake_task = lambda : None
+    >>> delegate(fake_task, "out", None)
     """
 
     def __init__(self,

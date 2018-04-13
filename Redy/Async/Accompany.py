@@ -1,8 +1,6 @@
-import logging
 import threading
 from Redy.Types import *
-from concurrent.futures.thread import ThreadPoolExecutor
-
+from .traits import Atomic
 from .Delegate import Delegate
 
 __all__ = ['Accompany', 'ThreadExit']
@@ -10,7 +8,7 @@ __all__ = ['Accompany', 'ThreadExit']
 _cancel_sign = object()
 
 
-class Accompany(Generic[T, TR, TE]):
+class Accompany(Atomic, Generic[T, TR, TE]):
     """
 
     >>> from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
@@ -23,7 +21,7 @@ class Accompany(Generic[T, TR, TE]):
     >>> def descriptor_mapping(x: str) -> Type[str]: return x.__class__
     # define an action.
 
-    >>> def act1(task: Accompany, product: Any, ctx: Thunk): print(task.events);time.sleep(delta)
+    >>> def act1(task: Accompany, product: Any, ctx: Thunk): print(task._events);time.sleep(delta)
 
     # create a test file
     >>> test_file = Path("./test_io.txt")
@@ -53,7 +51,7 @@ class Accompany(Generic[T, TR, TE]):
     >>> while task.running:
     >>>    print('running')
     >>>    if not new_action_added:
-    >>>        task.events[str].insert(
+    >>>        task._events[str].insert(
     >>>            lambda _, product, ctx: print(product) or time.sleep(delta),
     >>>            where=0)
     >>>        new_action_added = True
@@ -72,7 +70,7 @@ class Accompany(Generic[T, TR, TE]):
     >>> while task.running:
     >>>    print('running')
     >>>    if not has_added_exit_method:
-    >>>         task.events[str].insert(exit_thread, where=0)
+    >>>         task._events[str].insert(exit_thread, where=0)
     >>>         has_added_exit_method = True
     >>>    time.sleep(0.1)
 
@@ -82,7 +80,7 @@ class Accompany(Generic[T, TR, TE]):
     # cancel the task
     >>> task.cancel()
     # set new events
-    >>> task.events = {str: Delegate(act1)}
+    >>> task._events = {str: Delegate(act1)}
     # run again
     >>> task.run()
     # run synchronously with main thread.
@@ -102,65 +100,103 @@ class Accompany(Generic[T, TR, TE]):
 
         # user-writable
         self.target = target
-        self.descriptor_mapping = descriptor_mapping if descriptor_mapping else lambda x: x
-        self.events = events if events else {}
-        self.product = None
-        self.lock = threading.Lock()
+        self._descriptor_mapping = descriptor_mapping if descriptor_mapping else lambda x: x
+        self._events = events if events else {}
+        self._product = None
+        self._lock = threading.Lock()
 
         # user-readonly
         self._finished = None
         self._running = False
+
         self._thread: threading.Thread = None
 
     def run(self, *args):
         """
         You can choose whether to use lock method when running threads.
         """
-        self._finished = False
-        self._running = True
+        if self.running:
+            return self
+
+        self._mut_finished(False)  # in case of recovery from a disaster.
+        self._mut_running(True)
+
         stream = self.target(*args)
 
         # noinspection SpellCheckingInspection
         def subr():
-            self._running = True
+            self._mut_running(True)
             try:
                 for each in stream:
-                    self.product = each
+                    self._product = each
                     desc = self.descriptor_mapping(each)
                     event = self.events.get(desc)
                     if event:
                         event(self, each, globals)
-                self._finished = True
+                self._mut_finished(True)
             except ThreadExit:
                 pass
             finally:
-                self._running = False
+                self._mut_running(False)
 
         self._thread = thread = threading.Thread(target=subr, args=())
         thread.start()
         return self
 
-    @property
-    def running(self):
-        return self._running
-
-    @property
-    def finished(self):
-        return self._finished
-
     def cancel(self):
-        with self.lock:
-            desc_mapping = self.descriptor_mapping
-            self.descriptor_mapping = lambda _: _cancel_sign
-            self.events[_cancel_sign] = ThreadExit.exit_thread
-            while self._running:
-                pass
-            self.descriptor_mapping = desc_mapping
-            return self
+        desc_mapping = self.descriptor_mapping
+        self.descriptor_mapping = lambda _: _cancel_sign
+        self.events[_cancel_sign] = ThreadExit.exit_thread
+        while self.running:
+            pass
+        self.descriptor_mapping = desc_mapping
+        return self
 
     def wait(self):
         self._thread.join()
         return self
+
+    @property  # readonly
+    def product(self):
+        return self._product
+
+    @property
+    @Atomic.with_lock
+    def descriptor_mapping(self):
+        return self._descriptor_mapping
+
+    @descriptor_mapping.setter
+    @Atomic.with_lock
+    def descriptor_mapping(self, value: Func[TR, TE]):
+        self._descriptor_mapping = value
+
+    @property
+    @Atomic.with_lock
+    def events(self):
+        return self._events
+
+    @events.setter
+    @Atomic.with_lock
+    def events(self, value: Dict[TE, Delegate]):
+        self._events = value
+
+    @property
+    @Atomic.with_lock
+    def running(self):
+        return self._running
+
+    @Atomic.with_lock
+    def _mut_running(self, value: bool):
+        self._running = value
+
+    @property
+    @Atomic.with_lock
+    def finished(self):
+        return self._finished
+
+    @Atomic.with_lock
+    def _mut_finished(self, value: bool):
+        self._finished = value
 
 
 class ThreadExit(Exception):

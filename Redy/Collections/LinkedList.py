@@ -27,7 +27,15 @@ class LinkedList(Iterable[T]):
     >>>    print(i)
     >>> x.next = None
     >>> x.__repr__()
-
+    >>> try:
+    >>>    x.next = 1
+    >>> except TypeError:
+    >>>    print('expected error')
+    >>> except Exception as e:
+    >>>    raise e
+    >>> z = LinkedList(2)
+    >>> z.next = x
+    >>> print(z)
 
     """
     __slots__ = ['_next', 'value']

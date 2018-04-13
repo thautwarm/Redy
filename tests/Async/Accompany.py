@@ -7,7 +7,7 @@ from Redy.Tools import Path
 import time
 delta = 0.2
 def descriptor_mapping(x: str) -> Type[str]: return x.__class__
-def act1(task: Accompany, product: Any, ctx: Thunk): print(task.events);time.sleep(delta)
+def act1(task: Accompany, product: Any, ctx: Thunk): print(task._events);time.sleep(delta)
 test_file = Path("./test_io.txt")
 test_file.open('w').write("at three.\n lo \n li \nta")
 task: Accompany[None, str, Type[str]] = Accompany(
@@ -19,7 +19,7 @@ new_action_added = False
 while task.running:
    print('running')
    if not new_action_added:
-       task.events[str].insert(
+       task._events[str].insert(
            lambda _, product, ctx: print(product) or time.sleep(delta),
            where=0)
        new_action_added = True
@@ -32,12 +32,12 @@ task.run()
 while task.running:
    print('running')
    if not has_added_exit_method:
-        task.events[str].insert(exit_thread, where=0)
+        task._events[str].insert(exit_thread, where=0)
         has_added_exit_method = True
    time.sleep(0.1)
 task.run()
 task.cancel()
-task.events = {str: Delegate(act1)}
+task._events = {str: Delegate(act1)}
 task.run()
 task.wait()
 test_file.delete()

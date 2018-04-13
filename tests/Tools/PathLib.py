@@ -16,3 +16,5 @@ new.delete()
 p.relative()
 new.open('w')
 new.delete()
+assert new == str(new)
+root, *_ = new
