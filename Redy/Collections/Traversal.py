@@ -68,7 +68,8 @@ def sum_from(zero: T1 = None) -> Callable[[ActualIterable[T1]], T1]:
     def _(collection: Iterable[T1]) -> T1:
         if zero is None:
             collection = iter(collection)
-            return builtins.sum(collection, next(collection))
+            _zero = next(collection)
+            return builtins.sum(collection, _zero)
 
         return builtins.sum(collection, zero)
 
@@ -91,7 +92,7 @@ def each_do(action: Callable[[T], None]):
     return inner
 
 
-def flatten_to(atom: Type[T]):
+def flatten_to(atom: Union[Tuple[Type[T]], Type[T]]):
     """
     >>> from Redy.Collections import Traversal, Flow
     >>> lst: Iterable[int] = [[1, 2, 3]]

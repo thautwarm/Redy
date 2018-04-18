@@ -19,8 +19,8 @@ class Accompany(Atomic, Generic[T, TR, TE]):
 
     # we should use a lazy stream to represent event loop.
     >>> def descriptor_mapping(x: str) -> Type[str]: return x.__class__
-    # define an action.
 
+    # define an action.
     >>> def act1(task: Accompany, product: Any, ctx: Thunk): print(task._events);time.sleep(delta)
 
     # create a test file
@@ -37,6 +37,7 @@ class Accompany(Atomic, Generic[T, TR, TE]):
       每当IO stream产出文件的一行，`descriptor_mapping`捕获到它，并将它映射到一个状态值，(比如
       将它映射到它的类型)。
       接下来，　`events`　尝试从这个状态值去获得一系列特定的行动，并依次应用它们。
+
     >>> task: Accompany[None, str, Type[str]] = Accompany(
     >>>     lambda: open('./test_io.txt'),
     >>>     descriptor_mapping=lambda _: descriptor_mapping(_),
