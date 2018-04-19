@@ -42,3 +42,8 @@ from Redy.Collections import Traversal, Flow
 lst: Iterable[int] = [[1, 2, 3]]
 x = Flow(lst)[Traversal.flatten_to(int)]
 assert isinstance(x.unbox, Generator) and list(x.unbox) == [1, 2, 3]
+
+from Redy.Collections import Traversal, Flow
+lst: Iterable[int] = [[1, 2, 3]]
+x = Flow(lst)[Traversal.flatten_if(lambda _: isinstance(_, list))]
+assert isinstance(x.unbox, Generator) and list(x.unbox) == [1, 2, 3]

@@ -13,7 +13,7 @@ class Flow(Generic[T]):
         return Flow(fn(self.within))
 
     @property
-    def unbox(self):
+    def unbox(self) -> T:
         return self.within
 
 
@@ -71,6 +71,7 @@ class Monad(Iterable, Generic[T, TR]):
         """
         This method is expedient because of pycharm's inference error,
         and it will be replace by __call__ in the future.
+        >>> print('__call__', Monad(())(...))
         """
         return self.__call__(arg)
 

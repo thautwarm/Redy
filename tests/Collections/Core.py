@@ -21,3 +21,4 @@ _ = d.call(1)
 print(_)
 assert _.__class__ is str
 assert Monad(())(...) is None
+print('__call__', Monad(())(...))

@@ -12,3 +12,9 @@ delegate += (lambda task, product, ctx: print("current product: {}".format(produ
 delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
 fake_task = lambda : None
 delegate(fake_task, "out", None)
+delegate: Delegate
+delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
+delegate: Delegate
+delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
+delegate: Delegate
+delegate.insert(lambda task, product, ctx: print(product), where=Delegate.Where.after(lambda action: action.__name__ == 'myfunc'))

@@ -1,5 +1,5 @@
 from ..Types import *
-from ..Magic.classic import singleton
+from ..Magic.Classic import singleton
 
 __all__ = ['LinkedList', 'ZeroList', 'zero_list']
 
@@ -93,7 +93,7 @@ class LinkedList(Iterable[T]):
 
 
 @singleton
-class ZeroList(LinkedList):
+class ZeroList(LinkedList[T]):
     """
     >>> from Redy.Collections.LinkedList import zero_list, ZeroList
     >>> print(zero_list)

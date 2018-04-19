@@ -2,7 +2,7 @@ import builtins
 from ..Types import *
 import functools
 
-__all__ = ['map_by', 'reduce_by', 'fold_by', 'sum_from', 'each_do', 'filter_by', 'flatten_to']
+__all__ = ['map_by', 'reduce_by', 'fold_by', 'sum_from', 'each_do', 'filter_by', 'flatten_to', 'flatten_if']
 
 ActualIterable = Union[Iterable, Iterable, Sequence, Collection]
 
@@ -108,3 +108,23 @@ def flatten_to(atom: Union[Tuple[Type[T]], Type[T]]):
                 yield from inner(each)
 
     return inner
+
+
+def flatten_if(cond: Callable[[Union[T, ActualIterable[T]]], bool]):
+    """
+    >>> from Redy.Collections import Traversal, Flow
+    >>> lst: Iterable[int] = [[1, 2, 3]]
+    >>> x = Flow(lst)[Traversal.flatten_if(lambda _: isinstance(_, list))]
+    >>> assert isinstance(x.unbox, Generator) and list(x.unbox) == [1, 2, 3]
+    """
+
+    def inner(nested: ActualIterable[Union[T, ActualIterable[T]]]) -> ActualIterable[T]:
+        for each in nested:
+            if cond(each):
+                yield from inner(each)
+            else:
+                yield each
+
+    return inner
+
+
