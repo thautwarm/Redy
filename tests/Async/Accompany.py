@@ -1,8 +1,8 @@
-from Redy.Types import *
+from Redy.Typing import *
 
 
 from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
-from Redy.Types import *
+from Redy.Typing import *
 from Redy.Tools import Path
 import time
 delta = 0.2

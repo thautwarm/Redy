@@ -1,4 +1,4 @@
-from Redy.Types import *
+from Redy.Typing import *
 
 
 from Redy.Collections.LinkedList import LinkedList

@@ -1,20 +1,25 @@
 import functools
 import threading
+import types
 
 
-def singleton(cls_def):
-    initialized = False
-    inst = None
-    lock = threading.Lock()
+def __init__(self):
+    pass
 
-    def manager(*args, **kwargs):
-        nonlocal inst, initialized
-        with lock:
-            if initialized:
-                return inst
-            inst = cls_def(*args, **kwargs)
-            initialized = True
-            return inst
 
-    functools.update_wrapper(manager, cls_def)
-    return manager
+def singleton_init_by(init_fn):
+    def inner(cls_def: type):
+        if not hasattr(cls_def, '__instancecheck__') or isinstance(cls_def.__instancecheck__,
+                                                                   types.BuiltinFunctionType):
+            def __instancecheck__(self, instance):
+                return instance is self
+
+            cls_def.__instancecheck__ = __instancecheck__
+        cls_def.__init__ = init_fn
+
+        return cls_def()
+
+    return inner
+
+
+singleton = singleton_init_by(__init__)

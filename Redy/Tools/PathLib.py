@@ -2,7 +2,7 @@ import os
 import io
 import functools
 import time
-from ..Types import *
+from ..Typing import *
 
 __all__ = ['Path']
 

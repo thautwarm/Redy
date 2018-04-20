@@ -10,7 +10,7 @@ with open(version_filename) as f:
     version = Version(f.read().strip())
 
 setup(name='Redy',
-      version='0.0.1',
+      version=str(version),
       keywords='an integrated library for module python',
       description="very powerful and optional parser framework for python",
       long_description=readme,

@@ -1,5 +1,5 @@
 import threading
-from Redy.Types import *
+from Redy.Typing import *
 from .traits import Atomic
 from .Delegate import Delegate
 
@@ -12,7 +12,7 @@ class Accompany(Atomic, Generic[T, TR, TE]):
     """
 
     >>> from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
-    >>> from Redy.Types import *
+    >>> from Redy.Typing import *
     >>> from Redy.Tools import Path
     >>> import time
     >>> delta = 0.2

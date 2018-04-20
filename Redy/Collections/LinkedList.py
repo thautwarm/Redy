@@ -1,4 +1,4 @@
-from ..Types import *
+from ..Typing import *
 from ..Magic.Classic import singleton
 
 __all__ = ['LinkedList', 'ZeroList', 'zero_list']
@@ -118,9 +118,8 @@ class ZeroList(LinkedList[T]):
 
     __slots__ = []
 
-    # noinspection SpellCheckingInspection
-    def __init__(self):
-        pass
+    def __call__(self):
+        return self
 
     def __iter__(self):
         yield from ()

@@ -1,4 +1,4 @@
-from ..Types import *
+from ..Typing import *
 
 __all__ = ['Flow', 'Monad']
 

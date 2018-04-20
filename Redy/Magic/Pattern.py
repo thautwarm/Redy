@@ -10,6 +10,8 @@ class IPattern:
     def match(self, case):
         def add(func):
             self.templates[case] = func
+            if func.__doc__:
+                self.__doc__ += func.__doc__
             return self
 
         return add
@@ -86,4 +88,5 @@ class Pattern:
 
         new_func.templates = {}
         new_func.match = lambda *args, **kwargs: IPattern.match(new_func, *args, **kwargs)
+        new_func.__doc__ = "Redy pattern matching function. \n{}".format(func.__doc__ if func.__doc__ else '')
         return new_func

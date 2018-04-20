@@ -76,7 +76,7 @@ def generate_doc_for(module: Mapping[str, object]):
             codes.append
         ]
     with open(str(path), 'w') as f:
-        f.write("from Redy.Types import *\n\n\n")
+        f.write("from Redy.Typing import *\n\n\n")
         f.write('\n\n'.join(codes))
 
 
