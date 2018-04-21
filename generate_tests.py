@@ -3,7 +3,7 @@ import types
 
 from Redy.Collections.Traversal import *
 from Redy.Collections import *
-from Redy.Tools import PathLib, Path, Version
+from Redy.Tools import PathLib, Path, Version, TypeInterface
 
 from Redy.Collections import Core, Graph, Traversal, LinkedList
 from Redy.Async import Accompany, Delegate
@@ -90,3 +90,4 @@ if __name__ == '__main__':
     generate_doc_for(LinkedList)
     generate_doc_for(Pattern)
     generate_doc_for(Version)
+    generate_doc_for(TypeInterface)

@@ -4,6 +4,12 @@ Type objects of Python
 from Redy.Magic.Classic import singleton
 import types
 
+__all__ = ['II', 'Module', 'BuiltinMethod']
+
+
+class _Template:
+    pass
+
 
 class II:
     """
@@ -23,3 +29,14 @@ class Module(II):
     >>> assert isinstance(math, Module)
     """
     this = getattr(types, 'ModuleType')
+
+
+@singleton
+class BuiltinMethod(II):
+    """
+    union of types.BuiltinMethodType and method-wrapper
+    >>> from Redy.Tools.TypeInterface import BuiltinMethod
+    >>> class S: ...
+    >>> assert isinstance(S.__init__, BuiltinMethod)
+    """
+    this = (types.BuiltinMethodType, type(_Template.__str__))
