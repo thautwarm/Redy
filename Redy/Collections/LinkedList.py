@@ -113,6 +113,7 @@ class ZeroList(LinkedList[T]):
     >>>     raise e
     >>> zero_list_ = ZeroList()
     >>> assert zero_list is zero_list_
+    >>> assert isinstance(zero_list, ZeroList)
 
     """
 
@@ -123,6 +124,9 @@ class ZeroList(LinkedList[T]):
 
     def __iter__(self):
         yield from ()
+
+    def __instancecheck__(self, instance):
+        return self is instance
 
     @property
     def next(self):

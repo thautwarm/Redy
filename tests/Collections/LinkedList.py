@@ -43,6 +43,7 @@ except Exception as e:
     raise e
 zero_list_ = ZeroList()
 assert zero_list is zero_list_
+assert isinstance(zero_list, ZeroList)
 
 from Redy.Collections.LinkedList import zero_list, ZeroList
 print(zero_list)
@@ -62,3 +63,4 @@ except Exception as e:
     raise e
 zero_list_ = ZeroList()
 assert zero_list is zero_list_
+assert isinstance(zero_list, ZeroList)

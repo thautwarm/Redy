@@ -7,7 +7,7 @@ from Redy.Tools import PathLib, Path, Version, TypeInterface
 
 from Redy.Collections import Core, Graph, Traversal, LinkedList
 from Redy.Async import Accompany, Delegate
-from Redy.Magic import Pattern
+from Redy.Magic import Pattern, Classic
 
 pattern_clear = re.compile('\s+\>\>\> ')
 accept_private_doc = ('__add__', '__iadd__', '__sub__', '__isub__', '__mul__', '__imul__',
@@ -91,3 +91,4 @@ if __name__ == '__main__':
     generate_doc_for(Pattern)
     generate_doc_for(Version)
     generate_doc_for(TypeInterface)
+    generate_doc_for(Classic)
