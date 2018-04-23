@@ -27,10 +27,11 @@ from Redy.Magic.Classic import data
 class S:
    a: '1'
    b: lambda x: x
-   c: '2'
+   c: lambda x, y : ...
 assert isinstance(S.a, S)
 assert isinstance(S.b('2'), S)
 assert S.b('2').__str__() == '2'
+assert S.c(1, 2)[1] == 2
 
 from Redy.Magic.Classic import execute
 x = 1

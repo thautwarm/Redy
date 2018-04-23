@@ -5,18 +5,7 @@ from inspect import getfullargspec
 __all__ = ['singleton_init_by', 'singleton', 'const_return', 'cast', 'data', 'execute']
 
 _undef = object()
-_slot_wrapper = type(_undef.__str__)
-
-
-def _compose2(f1, f2):
-    n = '\n'
-
-    def call(*args, **kwargs):
-        return f1(f2(*args, **kwargs))
-
-    functools.update_wrapper(call, f2)
-    call.__doc__ = f"""{(f2.__doc__ if f2.__doc__ else n)}{f1.__doc__ if f1 else ""}"""
-    return call
+_slot_wrapper = type(object.__str__)
 
 
 def raise_exc(e: Exception):
@@ -129,29 +118,60 @@ def data(cls_def: type):
     >>> class S:
     >>>    a: '1'
     >>>    b: lambda x: x
-    >>>    c: '2'
+    >>>    c: lambda x, y : ...
 
 
     >>> assert isinstance(S.a, S)
     >>> assert isinstance(S.b('2'), S)
     >>> assert S.b('2').__str__() == '2'
+    >>> assert S.c(1, 2)[1] == 2
     """
     __annotations__ = cls_def.__annotations__
+    cls_def.__slots__ = ['__inst_str__', '__structure__']
 
-    @cast(singleton)
-    def make_type(typename, str_value: str):
-        return type(typename, (cls_def,), dict(_slots__=[], __str__=lambda self: str_value))
+    if not hasattr(cls_def, '__str__') or isinstance(cls_def.__str__, (types.BuiltinMethodType, _slot_wrapper)):
+        def __str__(self):
+            return self.__inst_str__
 
-    def make_callable_type(typename, f: 'function'):
-        return _compose2(lambda str_value: make_type(typename, str_value), f)
+        cls_def.__str__ = __str__
+
+    def __destruct__(self):
+        return self.__structure__
+
+    def __getitem__(self, i: int):
+        return self.__structure__[i]
+
+    cls_def.__destruct__ = __destruct__
+    cls_def.__getitem__ = __getitem__
+
+    def make_type(str_value: str, default: str):
+        entity = cls_def()
+        entity.__inst_str__ = str_value if isinstance(str_value, str) else default
+        entity.__structure__ = entity
+
+        return entity
+
+    def make_callable_type(f: 'function', default: str):
+        def call(*adt_cons_args):
+            entity = cls_def()
+            str_value = f(*adt_cons_args)
+
+            entity.__inst_str__ = str_value if isinstance(str_value, str) else default
+            entity.__structure__ = adt_cons_args
+            return entity
+
+        return call
 
     for each, annotation in __annotations__.items():
-        if isinstance(annotation, str):
-            singleton_inst = make_type(each, annotation)
-        elif callable(annotation):
-            singleton_inst = make_callable_type(each, annotation)
+
+        if callable(annotation):
+            spec = getfullargspec(annotation)
+            if spec.defaults or spec.kwonlyargs or spec.varkw:
+                raise TypeError('A GADT constructor must be a lambda without varargs, default args or keyword args.')
+            singleton_inst = make_callable_type(annotation, each)
         else:
-            raise TypeError(f'str or T -> str expected, but get {annotation.__class__.__name__}')
+            singleton_inst = make_type(annotation, each)
+
         setattr(cls_def,
                 each,
                 singleton_inst)
