@@ -1,13 +1,22 @@
 import functools
-import threading
-from typing import List
 import types
 from inspect import getfullargspec
 
-__all__ = ['singleton_init_by', 'singleton', 'const_return']
+__all__ = ['singleton_init_by', 'singleton', 'const_return', 'cast', 'data', 'execute']
 
 _undef = object()
 _slot_wrapper = type(_undef.__str__)
+
+
+def _compose2(f1, f2):
+    n = '\n'
+
+    def call(*args, **kwargs):
+        return f1(f2(*args, **kwargs))
+
+    functools.update_wrapper(call, f2)
+    call.__doc__ = f"""{(f2.__doc__ if f2.__doc__ else n)}{f1.__doc__ if f1 else ""}"""
+    return call
 
 
 def raise_exc(e: Exception):
@@ -90,3 +99,61 @@ def execute(func: types.FunctionType):
         return value
 
     return func(*(get_item(arg_name) for arg_name in spec.args))
+
+
+def cast(cast_fn):
+    """
+    >>> from Redy.Magic.Classic import cast
+    >>> @cast(list)
+    >>> def f(x):
+    >>>     for each in x:
+    >>>         if each % 2:
+    >>>             continue
+    >>>         yield each
+    """
+
+    def inner(func):
+        def call(*args, **kwargs):
+            return cast_fn(func(*args, **kwargs))
+
+        functools.update_wrapper(call, func)
+        return call
+
+    return inner
+
+
+def data(cls_def: type):
+    """
+    >>> from Redy.Magic.Classic import data
+    >>> @data
+    >>> class S:
+    >>>    a: '1'
+    >>>    b: lambda x: x
+    >>>    c: '2'
+
+
+    >>> assert isinstance(S.a, S)
+    >>> assert isinstance(S.b('2'), S)
+    >>> assert S.b('2').__str__() == '2'
+    """
+    __annotations__ = cls_def.__annotations__
+
+    @cast(singleton)
+    def make_type(typename, str_value: str):
+        return type(typename, (cls_def,), dict(_slots__=[], __str__=lambda self: str_value))
+
+    def make_callable_type(typename, f: 'function'):
+        return _compose2(lambda str_value: make_type(typename, str_value), f)
+
+    for each, annotation in __annotations__.items():
+        if isinstance(annotation, str):
+            singleton_inst = make_type(each, annotation)
+        elif callable(annotation):
+            singleton_inst = make_callable_type(each, annotation)
+        else:
+            raise TypeError(f'str or T -> str expected, but get {annotation.__class__.__name__}')
+        setattr(cls_def,
+                each,
+                singleton_inst)
+
+    return cls_def
