@@ -37,7 +37,7 @@ class Version:
             return
 
         self._numbers = list(map(int, numbers.split('.')))
-        if any(map(lambda _: _ > 10 or _ < 0, self._numbers)):
+        if any(map(lambda _: _ < 0, self._numbers)):
             raise ValueError('Input an illegal version number!')
 
     def increment(self, version_number_idx: int, increment: int):

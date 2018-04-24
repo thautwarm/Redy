@@ -131,9 +131,10 @@ def data(cls_def: type):
 
     if not hasattr(cls_def, '__str__') or isinstance(cls_def.__str__, (types.BuiltinMethodType, _slot_wrapper)):
         def __str__(self):
-            return self.__inst_str__
+            return f'{cls_def.__name__}[{self.__inst_str__}]'
 
         cls_def.__str__ = __str__
+        cls_def.__repr__ = __str__
 
     def __destruct__(self):
         return self.__structure__
