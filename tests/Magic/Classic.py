@@ -30,7 +30,7 @@ class S:
    c: lambda x, y : ...
 assert isinstance(S.a, S)
 assert isinstance(S.b('2'), S)
-assert S.b('2').__str__() == '2'
+assert S.b('2').__str__() == 'S[2]'
 assert S.c(1, 2)[1] == 2
 
 from Redy.Magic.Classic import execute
