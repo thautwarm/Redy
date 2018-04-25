@@ -1,5 +1,5 @@
 from enum import Enum
-from Redy.Typing import *
+from ..Typing import *
 
 _Action = Callable[[T, TE, TR], None]
 

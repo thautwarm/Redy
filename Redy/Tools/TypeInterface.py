@@ -1,7 +1,7 @@
 """
 Type objects of Python
 """
-from Redy.Magic.Classic import singleton
+from ..Magic.Classic import singleton
 import types
 
 __all__ = ['II', 'Module', 'BuiltinMethod']

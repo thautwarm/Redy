@@ -1,5 +1,5 @@
 import threading
-from Redy.Typing import *
+from ..Typing import *
 from .traits import Atomic
 from .Delegate import Delegate
 

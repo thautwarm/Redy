@@ -1,3 +1,6 @@
+from ..Magic.Pattern import Pattern
+from itertools import chain
+from collections import Iterable
 import numpy as np
 
 to_int64 = np.int64
@@ -8,7 +11,18 @@ try:
 
     dec = nb.jit
 except ModuleNotFoundError:
-    dec = lambda f: f
+    def dec(f):
+        return f
+
+
+def _cast(cast_fn):
+    def wrap(func):
+        def call(*args):
+            return cast_fn(func(*args))
+
+        return call
+
+    return wrap
 
 
 # @dec
@@ -31,8 +45,9 @@ except ModuleNotFoundError:
 #     return x
 
 
+@_cast(int)
 @dec
-def hash_from_stream(n, getter):
+def hash_from_stream(n, hash_stream):
     """
     >>> from Redy.Tools.Hash import hash_from_stream
     >>> s = iter((1, 2, 3))
@@ -42,7 +57,7 @@ def hash_from_stream(n, getter):
     x = to_int64(0x345678)
     multiplied = to_int64(1000003)
     for i in range(n - 1, -1, -1):
-        h = getter()
+        h = next(hash_stream)
         if h is -1:
             return -1
         x = (x ^ h) * multiplied
@@ -67,23 +82,59 @@ class HashCalculator:
     def __init__(self):
         self.hashes = []
 
-    def take(self, it):
-        h = hash(it)
-        if h is -1:
-            return -1
-        self.hashes.append(h)
+    def take(self, *it):
+        for each in it:
+            h = hash(each)
+            if h is -1:
+                return -1
+            self.hashes.append(h)
+
+    @_cast(int)
+    def extensive_collect(self, n: int, stream: Iterable):
+        return _extensive_collect_from_existed_hashes(self.hashes, n, stream)
 
     def collect(self):
-        x = to_int64(0x345678)
-        multiplied = to_int64(1000003)
-        n = len(self.hashes)
-        for h in self.hashes:
-            n -= 1
-            x = (x ^ h) * multiplied
-            multiplied += to_int64(82520 + 2 * n)
-        x += 97531
+        return _collect_from_existed_hashes(self.hashes)
 
-        if x == -1:
-            return -2
 
-        return x
+@_cast(int)
+@dec
+def _collect_from_existed_hashes(hashes):
+    x = to_int64(0x345678)
+    multiplied = to_int64(1000003)
+    n = len(hashes)
+    for h in hashes:
+        n -= 1
+        x = (x ^ h) * multiplied
+        multiplied += to_int64(82520 + 2 * n)
+    x += 97531
+
+    if x == -1:
+        return -2
+
+    return x
+
+
+@_cast(int)
+@dec
+def _extensive_collect_from_existed_hashes(hashes, n, stream):
+    n += len(hashes)
+    x = to_int64(0x345678)
+    multiplied = to_int64(1000003)
+    n = len(hashes)
+    for h in hashes:
+        n -= 1
+        x = (x ^ h) * multiplied
+        multiplied += to_int64(82520 + 2 * n)
+    for e in stream:
+        n -= 1
+        h = hash(e)
+        if h is -1:
+            return -1
+        x = (x ^ h) * multiplied
+        multiplied += to_int64(82520 + 2 * n)
+    x += 97531
+
+    if x == -1:
+        return -2
+    return x
