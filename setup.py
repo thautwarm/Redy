@@ -19,8 +19,9 @@ setup(name='Redy',
       author='thautwarm',
       author_email='twshere@outlook.com',
       include_package_data=True,
-      packages=['Redy', 'Redy.Async', 'Redy.Collections', 'Redy.Magic', 'Redy.Tools'],
+      packages=['Redy', 'Redy.Async', 'Redy.Collections', 'Redy.Magic', 'Redy.Tools', 'Redy.GADT'],
       install_requires=[
+      	'numpy'
       ],
       platforms='any',
       classifiers=[
