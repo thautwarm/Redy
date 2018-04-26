@@ -8,7 +8,7 @@ from Redy.Tools import PathLib, Path, Version, TypeInterface
 from Redy.Collections import Core, Graph, Traversal, LinkedList
 from Redy.Async import Accompany, Delegate
 from Redy.Magic import Pattern, Classic
-from Redy.GADT import Core as GADTCore
+from Redy.ADT import Core as GADTCore
 
 pattern_clear = re.compile('\s+\>\>\> ')
 accept_private_doc = ('__add__', '__iadd__', '__sub__', '__isub__', '__mul__', '__imul__',

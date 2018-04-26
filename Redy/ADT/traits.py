@@ -29,10 +29,6 @@ class Eq(ABC):
 class Ord(Eq, ABC):  # ordered
 
     @abstractmethod
-    def __le__(self, other):
-        raise NotImplemented
-
-    @abstractmethod
     def __lt__(self, other):
         raise NotImplemented
 

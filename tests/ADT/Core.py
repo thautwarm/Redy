@@ -1,9 +1,9 @@
 from Redy.Typing import *
 
 
-from Redy.GADT.Core import data
+from Redy.ADT.Core import data
 from Redy.Magic.Classic import cast
-from Redy.GADT.traits import *
+from Redy.ADT.traits import *
 @data
 class S(ConsInd):  # ConsInd class makes it available to index from this data as from a tuple.
    a: '1'
@@ -30,7 +30,7 @@ assert len({Nat.Zero, Nat.Succ(Nat.Zero), Nat.Succ(Nat.Zero)}) is 2
 
 
 
-from Redy.GADT.Core import match, data, P
+from Redy.ADT.Core import match, data, P
 @data
 class List(ConsInd, Discrete):
     # ConsInd(index following constructing)

@@ -9,9 +9,9 @@ __all__ = ['data', 'P', 'PatternList', 'match']
 
 def data(cls_def: type):
     """
-    >>> from Redy.GADT.Core import data
+    >>> from Redy.ADT.Core import data
     >>> from Redy.Magic.Classic import cast
-    >>> from Redy.GADT.traits import *
+    >>> from Redy.ADT.traits import *
     >>> @data
     >>> class S(ConsInd):  # ConsInd class makes it available to index from this data as from a tuple.
     >>>    a: '1'
@@ -97,7 +97,7 @@ def data(cls_def: type):
         if callable(annotation):
             spec = getfullargspec(annotation)
             if spec.defaults or spec.kwonlyargs or spec.varkw:
-                raise TypeError('A GADT constructor must be a lambda without varargs, default args or keyword args.')
+                raise TypeError('A ADT constructor must be a lambda without varargs, default args or keyword args.')
             singleton_inst = make_callable_type(annotation, each)
         else:
             singleton_inst = make_type(annotation, each)
@@ -125,7 +125,7 @@ class P:
 
 def match(mode_lst: list, obj: 'object that has __destruct__ method'):
     """
-    >>> from Redy.GADT.Core import match, data, P
+    >>> from Redy.ADT.Core import match, data, P
     >>> @data
     >>> class List(ConsInd, Discrete):
     >>>     # ConsInd(index following constructing)
