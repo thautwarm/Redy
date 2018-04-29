@@ -1,3 +1,4 @@
+import itertools
 import os
 import io
 import functools
@@ -61,9 +62,15 @@ class Path:
     __slots__ = ["_path"]
 
     def __init__(self, *path_sections: str, no_check=False):
+
         if no_check:
             self._path = path_sections
             return
+
+        if path_sections:  # check if it's `~/somewhere`
+            head, *tail = path_split(path_sections[0])
+            if head == '~':
+                path_sections = (os.path.expanduser('~'), *tail, *path_sections[1:])
 
         self._path = path_split(os.path.abspath(path_join(path_sections)))
 
@@ -119,7 +126,10 @@ class Path:
             os.remove(str(self))
 
     def into(self, file_or_directory: str) -> 'Path':
-        return Path(*self._path, file_or_directory.strip('/\\'), no_check=True)
+        if '/' not in file_or_directory and '\\' not in file_or_directory:
+            return Path(*self._path, file_or_directory, no_check=True)
+
+        return Path(*self._path, file_or_directory.strip('/\\'))
 
     def mkdir(self):
         try:

@@ -119,6 +119,10 @@ class ZeroList(LinkedList[T]):
 
     __slots__ = []
 
+    # noinspection PyMissingConstructor
+    def __init__(self):
+        pass
+
     def __call__(self):
         return self
 

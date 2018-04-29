@@ -4,7 +4,8 @@ from inspect import getfullargspec
 from collections import namedtuple
 from ..Tools.Hash import hash_from_stream
 
-__all__ = ['singleton_init_by', 'singleton', 'const_return', 'cast', 'execute', 'record', 'discrete_cache', 'cache']
+__all__ = ['template', 'singleton_init_by', 'singleton', 'const_return', 'cast', 'execute', 'record', 'discrete_cache',
+           'cache']
 
 _undef = object()
 _slot_wrapper = type(object.__str__)
@@ -14,11 +15,7 @@ def raise_exc(e: Exception):
     raise e
 
 
-def __init__(self):
-    pass
-
-
-def singleton_init_by(init_fn):
+def singleton_init_by(init_fn=None):
     """
     >>> from Redy.Magic.Classic import singleton
     >>> @singleton
@@ -27,6 +24,18 @@ def singleton_init_by(init_fn):
     >>> assert isinstance(S, S)
     """
 
+    if not init_fn:
+        def wrap_init(origin_init):
+            return origin_init
+    else:
+        def wrap_init(origin_init):
+
+            def __init__(self):
+                origin_init(self)
+                init_fn(self)
+
+            return __init__
+
     def inner(cls_def: type):
         if not hasattr(cls_def, '__instancecheck__') or isinstance(cls_def.__instancecheck__,
                                                                    (types.BuiltinMethodType, _slot_wrapper)):
@@ -34,14 +43,16 @@ def singleton_init_by(init_fn):
                 return instance is self
 
             cls_def.__instancecheck__ = __instancecheck__
-        cls_def.__init__ = init_fn
+
+        _origin_init = cls_def.__init__
+        cls_def.__init__ = wrap_init(_origin_init)
 
         return cls_def()
 
     return inner
 
 
-singleton = singleton_init_by(__init__)
+singleton = singleton_init_by(None)
 
 
 def const_return(func):
@@ -127,9 +138,7 @@ def record(cls_def):
     >>> s = S("sam", "I/O", 1)
     """
     typ: type = namedtuple(cls_def.__name__, list(cls_def.__annotations__.keys()))
-    return type(cls_def.__name__,
-                (typ, *cls_def.__bases__),
-                dict(cls_def.__dict__))
+    return type(cls_def.__name__, (typ, *cls_def.__bases__), dict(cls_def.__dict__))
 
 
 def _make_key_stream(args, kwargs: dict):
@@ -170,3 +179,63 @@ def cache(func):
 
     functools.update_wrapper(inner, func)
     return inner
+
+
+def template(spec_fn):
+    """
+    >>> from Redy.Magic.Classic import template
+    >>> import operator
+    >>> class Point:
+    >>>    def __init__(self, p):
+    >>>         assert isinstance(p, tuple) and len(p) is 2
+    >>>         self.x, self.y = p
+
+    >>> def some_metrics(p: Point):
+    >>>     return p.x + 2 * p.y
+
+    >>> @template
+    >>> def comp_on_metrics(self: Point, another: Point, op):
+    >>>        if not isinstance(another, Point):
+    >>>             another = Point(another)
+    >>>        return op(*map(some_metrics, (self, another)))
+
+    >>> class Space(Point):
+    >>>    @comp_on_metrics(op=operator.lt)
+    >>>    def __lt__(self, other):
+    >>>        ...
+
+    >>>    @comp_on_metrics(op=operator.eq)
+    >>>    def __eq__(self, other):
+    >>>        ...
+
+    >>>    @comp_on_metrics(op=operator.gt)
+    >>>    def __gt__(self, other):
+    >>>        ...
+
+    >>>    @comp_on_metrics(op=operator.le)
+    >>>    def __le__(self, other):
+    >>>        ...
+
+    >>>    @comp_on_metrics(op=operator.ge)
+    >>>    def __ge__(self, other):
+    >>>        ...
+
+    >>> p = Space((0, 1))
+    >>> p >   (1, 2)
+    >>> p <   (3, 4)
+    >>> p >=  (5, 6)
+    >>> p <=  (7, 8)
+    >>> p ==  (9, 10)
+
+    """
+
+    def specify(*spec_args, **spec_kwds):
+        def call(_):
+            def inner(*args, **kwds):
+                return spec_fn(*spec_args, *args, **spec_kwds, **kwds)
+
+            return inner
+
+        return call
+
+    return specify

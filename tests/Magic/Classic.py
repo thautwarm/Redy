@@ -1,6 +1,42 @@
 from Redy.Typing import *
 
 
+from Redy.Magic.Classic import template
+import operator
+class Point:
+   def __init__(self, p):
+        assert isinstance(p, tuple) and len(p) is 2
+        self.x, self.y = p
+def some_metrics(p: Point):
+    return p.x + 2 * p.y
+@template
+def comp_on_metrics(self: Point, another: Point, op):
+       if not isinstance(another, Point):
+            another = Point(another)
+       return op(*map(some_metrics, (self, another)))
+class Space(Point):
+   @comp_on_metrics(op=operator.lt)
+   def __lt__(self, other):
+       ...
+   @comp_on_metrics(op=operator.eq)
+   def __eq__(self, other):
+       ...
+   @comp_on_metrics(op=operator.gt)
+   def __gt__(self, other):
+       ...
+   @comp_on_metrics(op=operator.le)
+   def __le__(self, other):
+       ...
+   @comp_on_metrics(op=operator.ge)
+   def __ge__(self, other):
+       ...
+p = Space((0, 1))
+p >   (1, 2)
+p <   (3, 4)
+p >=  (5, 6)
+p <=  (7, 8)
+p ==  (9, 10)
+
 from Redy.Magic.Classic import singleton
 @singleton
 class S:
