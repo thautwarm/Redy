@@ -133,7 +133,7 @@ class Path:
 
     def mkdir(self):
         try:
-            os.mkdir(str(self))
+            os.makedirs(str(self))
         except IOError:
             pass
         return self
