@@ -131,10 +131,12 @@ class Path:
 
         return Path(*self._path, file_or_directory.strip('/\\'))
 
-    def mkdir(self):
+    def mkdir(self, warning=True):
         try:
             os.makedirs(str(self))
-        except IOError:
+        except OSError as e:
+            if warning:
+                print(e)
             pass
         return self
 
