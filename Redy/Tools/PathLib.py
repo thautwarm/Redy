@@ -46,6 +46,7 @@ class Path:
     >>> new = p.into('justfortest')
     >>> new.mkdir()
     >>> new.mkdir()
+    >>> assert "justfortest" in p
     >>> print(new._path)
     >>> new.delete()
     >>> p.relative()
@@ -62,7 +63,6 @@ class Path:
     __slots__ = ["_path"]
 
     def __init__(self, *path_sections: str, no_check=False):
-
         if no_check:
             self._path = path_sections
             return
@@ -73,6 +73,12 @@ class Path:
                 path_sections = (os.path.expanduser('~'), *tail, *path_sections[1:])
 
         self._path = path_split(os.path.abspath(path_join(path_sections)))
+
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in (each[-1] for each in self.list_dir())
+
+        return item in self.list_dir()
 
     def __iter__(self):
         yield from self._path

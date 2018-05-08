@@ -11,6 +11,7 @@ p.__iter__()
 new = p.into('justfortest')
 new.mkdir()
 new.mkdir()
+assert "justfortest" in p
 print(new._path)
 new.delete()
 p.relative()
