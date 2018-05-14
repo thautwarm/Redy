@@ -1,4 +1,5 @@
 from typing import List
+import inspect
 
 __all__ = ["IPattern", "Pattern"]
 
@@ -15,6 +16,9 @@ class IPattern:
             return self
 
         return add
+
+
+_empty = inspect._empty
 
 
 class Pattern:
@@ -75,17 +79,23 @@ class Pattern:
     """
 
     def __new__(cls, func: 'function') -> IPattern:
-        def new_func(*args, **kwargs):
-            case = func(*args, **kwargs)
+        args = ", ".join(str(each) for each in inspect.signature(func).parameters.values())
+        params = ", ".join(str(each if each.default is _empty else name) for name, each in
+                           inspect.signature(func).parameters.items())
 
-            f = new_func.templates.get(case)
-            if not f:
-                f = new_func.templates.get(any)
-                if not f:
-                    raise TypeError(f'Unknown entry for case {case}.')
+        # noinspection PyUnresolvedReferences
+        scope = {'func': func, **func.__globals__}
 
-            return f(*args, **kwargs)
+        exec(f"def new_func({args}):\n"
+             f"    case = func({params})\n"
+             f"    f = new_func.templates.get(case)\n"
+             f"    if not f:\n"
+             f"        f = new_func.templates.get(any)\n"
+             f"        if not f:\n"
+             f"            raise TypeError(f'Unknown entry for case {{case}}.')\n"
+             f"    return f({params})", scope)
 
+        new_func: IPattern = scope['new_func']
         new_func.templates = {}
         new_func.match = lambda *args, **kwargs: IPattern.match(new_func, *args, **kwargs)
         new_func.__doc__ = "Redy pattern matching function. \n{}".format(func.__doc__ if func.__doc__ else '')
