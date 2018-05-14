@@ -86,6 +86,9 @@ class Path:
     def __eq__(self, other: Union[str, 'Path']):
         return str(self) == str(other if isinstance(other, Path) else Path(other))
 
+    def exists(self) -> bool:
+        return os.path.exists(self.__str__())
+
     def is_dir(self) -> bool:
         return os.path.isdir(str(self))
 
