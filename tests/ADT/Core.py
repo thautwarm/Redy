@@ -43,3 +43,12 @@ lst = List.Cons(2, List.Cons(1, List.Nil))
 mode_lst = P[List.Cons, P, P[List.Cons, 1]]
 if match(mode_lst,  lst):
     assert mode_lst == [List.Cons, 2, [List.Cons, 1]]
+
+from Redy.ADT.Core import RDT
+from Redy.ADT.traits import ConsInd
+@data
+class MyDT(ConsInd):
+    P: RDT[lambda raw_input: ((1, raw_input), str(raw_input))]
+p = MyDT.P("42")
+assert p[1] is 1
+assert p[2] == "42"

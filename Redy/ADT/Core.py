@@ -4,7 +4,7 @@ from .traits import *
 from inspect import getfullargspec
 import functools
 
-__all__ = ['data', 'P', 'PatternList', 'match']
+__all__ = ['data', 'P', 'PatternList', 'match', 'RDT']
 
 
 def data(cls_def: type):
@@ -80,12 +80,18 @@ def data(cls_def: type):
 
     # if Discrete, it means that for a definite input, the return of data constructor is definitely the same object.
 
-    def make_callable_type(f: 'function', default: str):
+    def make_callable_type(f: Union['function', DTTransDescriptor], default: str):
         @constructor_descriptor
         def call(*adt_cons_args):
             entity = new_cls_def()
-            str_value = f(*adt_cons_args)
 
+            if isinstance(f, DTTransDescriptor):
+                __structure__, __inst_str__ = f.func(*adt_cons_args)
+                entity.__inst_str__ = (default, *__structure__) if __inst_str__  is ... else __inst_str__
+                entity.__structure__ = (call, *__structure__)
+                return entity
+
+            str_value = f(*adt_cons_args)
             entity.__inst_str__ = (default, *adt_cons_args) if str_value is ... else str_value
             entity.__structure__ = (call, *adt_cons_args)
             return entity
@@ -93,20 +99,45 @@ def data(cls_def: type):
         return call
 
     for each, annotation in __annotations__.items():
-
         if callable(annotation):
             spec = getfullargspec(annotation)
             if spec.defaults or spec.kwonlyargs or spec.varkw:
-                raise TypeError('A ADT constructor must be a lambda without varargs, default args or keyword args.')
+                raise TypeError('A ADT constructor must be a lambda without default args or keyword args.')
             singleton_inst = make_callable_type(annotation, each)
         else:
             singleton_inst = make_type(annotation, each)
 
-        setattr(new_cls_def,
-                each,
-                singleton_inst)
+        setattr(new_cls_def, each, singleton_inst)
 
     return new_cls_def
+
+
+class DTTransDescriptor:
+    __slots__ = ['func']
+
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args):
+        raise TypeError
+
+
+@singleton
+class RDT:
+    """
+    rewrite data type
+    >>> from Redy.ADT.Core import RDT
+    >>> from Redy.ADT.traits import ConsInd
+    >>> @data
+    >>> class MyDT(ConsInd):
+    >>>     P: RDT[lambda raw_input: ((1, raw_input), str(raw_input))]
+    >>> p = MyDT.P("42")
+    >>> assert p[1] is 1
+    >>> assert p[2] == "42"
+    """
+
+    def __getitem__(self, item):
+        return DTTransDescriptor(item)
 
 
 class PatternList(list):
