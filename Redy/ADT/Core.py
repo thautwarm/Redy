@@ -196,3 +196,4 @@ def match(mode_lst: list, obj: 'object that has __destruct__ method'):
             return False
 
     return True
+

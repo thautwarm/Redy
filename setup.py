@@ -11,8 +11,8 @@ with open(version_filename) as f:
 
 setup(name='Redy',
       version=str(version),
-      keywords='an integrated library for module python',
-      description="very powerful and optional parser framework for python",
+      keywords='python solution',
+      description="an integrated library for module python",
       long_description=readme,
       license='MIT',
       url='https://github.com/thautwarm/Redy',

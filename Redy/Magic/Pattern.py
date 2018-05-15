@@ -21,21 +21,6 @@ class IPattern:
 _empty = inspect._empty
 
 
-def _render_params(*parameters: inspect.Parameter):
-    formats = []
-
-    for each in parameters:
-        if each.kind == inspect.Parameter.KEYWORD_ONLY:
-            formats.append(f'{each.name}={each.name}')
-        elif each.kind == inspect.Parameter.VAR_KEYWORD:
-            formats.append(f'**{each.name}')
-        elif each.kind == inspect.Parameter.VAR_POSITIONAL:
-            formats.append(f'*{each.name}')
-        else:
-            formats.append(each.name)
-    return ', '.join(formats)
-
-
 class Pattern:
     """
     multiple dispatch
@@ -94,24 +79,35 @@ class Pattern:
     """
 
     def __new__(cls, func: 'function') -> IPattern:
-        sig = inspect.signature(func)
-        args = ", ".join(str(each) for each in sig.parameters.values())
-        params = _render_params(*sig.parameters.values())
-
         # noinspection PyUnresolvedReferences
-        scope = {'func': func, **func.__globals__}
+        arg_info = inspect.getfullargspec(func)
 
-        exec(f"def new_func({args}):\n"
-             f"    case = func({params})\n"
-             f"    f = new_func.templates.get(case)\n"
-             f"    if not f:\n"
-             f"        f = new_func.templates.get(any)\n"
-             f"        if not f:\n"
-             f"            raise TypeError(f'Unknown entry for case {{case}}.')\n"
-             f"    return f({params})", scope)
+        if arg_info.defaults or arg_info.kwonlyargs or arg_info.varkw or arg_info.varargs:
 
-        new_func: IPattern = scope['new_func']
+            def new_func(*args, **kwargs):
+                case = func(*args, **kwargs)
+                f = new_func.templates.get(case)
+                if not f:
+                    f = new_func.templates.get(any)
+                    if not f:
+                        raise TypeError(f'Unknown entry for case {case}.')
+                return f(*args, **kwargs)
+        else:
+
+            args = ",".join(inspect.getargs(func.__code__).args)
+            # noinspection PyUnresolvedReferences
+            scope = {'func': func, **func.__globals__}
+            exec(f"def new_func({args}):\n"
+                 f"    case = func({args})\n"
+                 f"    f = new_func.templates.get(case)\n"
+                 f"    if not f:\n"
+                 f"        f = new_func.templates.get(any)\n"
+                 f"        if not f:\n"
+                 f"            raise TypeError(f'Unknown entry for case {{case}}.')\n"
+                 f"    return f({args})\n", scope)
+            new_func: IPattern = scope['new_func']
+
         new_func.templates = {}
-        new_func.match = lambda *args, **kwargs: IPattern.match(new_func, *args, **kwargs)
+        new_func.case = new_func.match = lambda case: IPattern.match(new_func, case)
         new_func.__doc__ = "Redy pattern matching function. \n{}".format(func.__doc__ if func.__doc__ else '')
         return new_func
