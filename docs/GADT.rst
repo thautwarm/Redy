@@ -4,8 +4,8 @@ GADT
 
 .. code :: python
 
-	from Redy.GADT.Core import data
-	from Redy.GADT.traits import Ord, Discrete, ConsInd
+	from Redy.ADT.Core import data
+	from Redy.ADT.traits import Ord, Discrete, ConsInd
 
 
 	@data
@@ -20,9 +20,6 @@ GADT
 	        if other is Nat.Zero:
 	            return False
 	        return other[1] == self[1]
-
-	    def __le__(self, other):
-	        return self == other or self < other
 
 	    def __lt__(self, other):
 	        assert isinstance(other, Nat)

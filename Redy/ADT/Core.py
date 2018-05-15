@@ -1,8 +1,7 @@
 from ..Tools.TypeInterface import BuiltinMethod
-from ..Magic.Classic import singleton
+from ..Magic.Classic import singleton, cache
 from .traits import *
-from inspect import getfullargspec
-import functools
+from inspect import getfullargspec, getargs
 
 __all__ = ['data', 'P', 'PatternList', 'match', 'RDT']
 
@@ -44,7 +43,7 @@ def data(cls_def: type):
     __annotations__ = cls_def.__annotations__
 
     def constructor_descriptor(f):
-        return functools.lru_cache(maxsize=None)(f) if issubclass(cls_def, Discrete) else f
+        return cache(f) if issubclass(cls_def, Discrete) else f
 
     __dict__ = {}
     for each in reversed(cls_def.__mro__):
@@ -80,30 +79,31 @@ def data(cls_def: type):
 
     # if Discrete, it means that for a definite input, the return of data constructor is definitely the same object.
 
-    def make_callable_type(f: Union['function', DTTransDescriptor], default: str):
-        @constructor_descriptor
-        def call(*adt_cons_args):
-            entity = new_cls_def()
-
-            if isinstance(f, DTTransDescriptor):
-                __structure__, __inst_str__ = f.func(*adt_cons_args)
-                entity.__inst_str__ = (default, *__structure__) if __inst_str__  is ... else __inst_str__
-                entity.__structure__ = (call, *__structure__)
-                return entity
-
-            str_value = f(*adt_cons_args)
-            entity.__inst_str__ = (default, *adt_cons_args) if str_value is ... else str_value
-            entity.__structure__ = (call, *adt_cons_args)
-            return entity
-
-        return call
-
     for each, annotation in __annotations__.items():
         if callable(annotation):
             spec = getfullargspec(annotation)
+            if isinstance(annotation, DTTransDescriptor):
+                _args = ", ".join(getargs(annotation.func.__code__).args)
+                impl = (f"def call({_args}):\n"
+                        f"    entity = new_cls_def()\n"
+                        f"    __structure__, __inst_str__ = annotation.func({_args})\n"
+                        f"    entity.__inst_str__ = {each.__repr__()} if __inst_str__  is ... else __inst_str__\n"
+                        f"    entity.__structure__ = call, *__structure__\n"
+                        f"    return entity\n")
+            else:
+                _args = ", ".join(getargs(annotation.__code__).args)
+                impl = (f"def call({_args}):\n"
+                        f"    entity = new_cls_def()\n"
+                        f"    str_value = annotation({_args})\n"
+                        f"    entity.__inst_str__ = {each.__repr__()} if str_value is ... else str_value\n"
+                        f"    entity.__structure__ = call, {_args}\n"
+                        f"    return entity")
             if spec.defaults or spec.kwonlyargs or spec.varkw:
                 raise TypeError('A ADT constructor must be a lambda without default args or keyword args.')
-            singleton_inst = make_callable_type(annotation, each)
+
+            scope = {'annotation': annotation, 'new_cls_def': new_cls_def}
+            exec(f"{impl}", scope)
+            singleton_inst = constructor_descriptor(scope['call'])
         else:
             singleton_inst = make_type(annotation, each)
 
@@ -196,4 +196,3 @@ def match(mode_lst: list, obj: 'object that has __destruct__ method'):
             return False
 
     return True
-
