@@ -21,6 +21,21 @@ class IPattern:
 _empty = inspect._empty
 
 
+def _render_params(*parameters: inspect.Parameter):
+    formats = []
+
+    for each in parameters:
+        if each.kind == inspect.Parameter.KEYWORD_ONLY:
+            formats.append(f'{each.name}={each.name}')
+        elif each.kind == inspect.Parameter.VAR_KEYWORD:
+            formats.append(f'**{each.name}')
+        elif each.kind == inspect.Parameter.VAR_POSITIONAL:
+            formats.append(f'*{each.name}')
+        else:
+            formats.append(each.name)
+    return ', '.join(formats)
+
+
 class Pattern:
     """
     multiple dispatch
@@ -79,9 +94,9 @@ class Pattern:
     """
 
     def __new__(cls, func: 'function') -> IPattern:
-        args = ", ".join(str(each) for each in inspect.signature(func).parameters.values())
-        params = ", ".join(str(each if each.default is _empty else name) for name, each in
-                           inspect.signature(func).parameters.items())
+        sig = inspect.signature(func)
+        args = ", ".join(str(each) for each in sig.parameters.values())
+        params = _render_params(*sig.parameters.values())
 
         # noinspection PyUnresolvedReferences
         scope = {'func': func, **func.__globals__}
