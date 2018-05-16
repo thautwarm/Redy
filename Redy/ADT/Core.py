@@ -139,6 +139,9 @@ class RDT:
     def __getitem__(self, item):
         return DTTransDescriptor(item)
 
+    def __call__(self, *args):
+        raise NotImplemented
+
 
 class PatternList(list):
     pass
