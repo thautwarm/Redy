@@ -13,7 +13,8 @@ class IPattern:
             self.templates[case] = func
             if func.__doc__:
                 self.__doc__ += func.__doc__
-            return self
+
+            return func if hasattr(func, '__name__') and func.__name__ != self.__name__ else self
 
         return add
 
@@ -108,6 +109,7 @@ class Pattern:
             new_func: IPattern = scope['new_func']
 
         new_func.templates = {}
+        new_func.__name__ = func.__name__
         new_func.case = new_func.match = lambda case: IPattern.match(new_func, case)
         new_func.__doc__ = "Redy pattern matching function. \n{}".format(func.__doc__ if func.__doc__ else '')
         return new_func
