@@ -44,7 +44,7 @@ class Dense(Eq):
     def __eq__(self: IData, other):
         # noinspection PyUnresolvedReferences
 
-        return isinstance(other, cls_def) and (
+        return isinstance(other, Dense) and (
             self.__structure__ == other.__structure__ if self.__structure__ else self is other)
 
 
