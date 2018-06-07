@@ -1,7 +1,9 @@
+import types
+from inspect import getargs, getfullargspec
+from ..Magic.Classic import discrete_cache, singleton
 from ..Tools.TypeInterface import BuiltinMethod
-from ..Magic.Classic import singleton, cache
-from .traits import *
-from inspect import getfullargspec, getargs
+from .traits import Discrete
+from ..Opt.utils import new_func_maker
 
 __all__ = ['data', 'P', 'PatternList', 'match', 'RDT']
 
@@ -43,7 +45,7 @@ def data(cls_def: type):
     __annotations__ = cls_def.__annotations__
 
     def constructor_descriptor(f):
-        return cache(f) if issubclass(cls_def, Discrete) else f
+        return discrete_cache(f) if issubclass(cls_def, Discrete) else f
 
     __dict__ = {}
     for each in reversed(cls_def.__mro__):
@@ -84,26 +86,35 @@ def data(cls_def: type):
             spec = getfullargspec(annotation)
             if isinstance(annotation, DTTransDescriptor):
                 _args = ", ".join(getargs(annotation.func.__code__).args)
+                code: types.CodeType = annotation.func.__code__
                 impl = (f"def call({_args}):\n"
                         f"    entity = new_cls_def()\n"
                         f"    __structure__, __inst_str__ = annotation.func({_args})\n"
                         f"    entity.__inst_str__ = {each.__repr__()} if __inst_str__  is ... else __inst_str__\n"
-                        f"    entity.__structure__ = call, *__structure__\n"
+                        f"    entity.__structure__ = cons, *__structure__\n"
                         f"    return entity\n")
             else:
                 _args = ", ".join(getargs(annotation.__code__).args)
+                code: types.CodeType = annotation.__code__
                 impl = (f"def call({_args}):\n"
                         f"    entity = new_cls_def()\n"
                         f"    str_value = annotation({_args})\n"
                         f"    entity.__inst_str__ = {each.__repr__()} if str_value is ... else str_value\n"
-                        f"    entity.__structure__ = call, {_args}\n"
+                        f"    entity.__structure__ = cons, {_args}\n"
                         f"    return entity")
             if spec.defaults or spec.kwonlyargs or spec.varkw:
                 raise TypeError('A ADT constructor must be a lambda without default args or keyword args.')
 
             scope = {'annotation': annotation, 'new_cls_def': new_cls_def}
-            exec(f"{impl}", scope)
-            singleton_inst = constructor_descriptor(scope['call'])
+            exec(compile(f"{impl}", "Redy.ADT.Core.py", "exec", 0, False), scope)
+            _singleton_inst = scope['call']
+
+            maker = new_func_maker(_singleton_inst)
+            _singleton_inst = maker(filename=code.co_filename, firstlineno=code.co_firstlineno, lnotab=code.co_lnotab)
+
+            singleton_inst = constructor_descriptor(_singleton_inst)
+            scope['cons'] = singleton_inst
+
         else:
             singleton_inst = make_type(annotation, each)
 
@@ -140,7 +151,7 @@ class RDT:
         return DTTransDescriptor(item)
 
     def __call__(self, *args):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class PatternList(list):

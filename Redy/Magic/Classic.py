@@ -29,7 +29,6 @@ def singleton_init_by(init_fn=None):
             return origin_init
     else:
         def wrap_init(origin_init):
-
             def __init__(self):
                 origin_init(self)
                 init_fn(self)
@@ -141,17 +140,23 @@ def record(cls_def):
     return cls_def.__class__(cls_def.__name__, (typ, *cls_def.__bases__), dict(cls_def.__dict__))
 
 
-def _make_key_stream(args, kwargs: dict):
+def _make_discrete_key_stream(args, kwargs: dict):
     yield from map(id, args)
     if kwargs:
         yield from map(id, sorted(kwargs.items()))
+
+
+def _make_dense_key_stream(args, kwargs: dict):
+    yield from map(hash, args)
+    if kwargs:
+        yield from map(hash, kwargs.items())
 
 
 def discrete_cache(func):
     caching = {}
 
     def inner(*args, **kwargs):
-        key = hash_from_stream(len(args) + len(kwargs), _make_key_stream(args, kwargs))
+        key = hash_from_stream(len(args) + len(kwargs), _make_discrete_key_stream(args, kwargs))
         res = caching.get(key, _undef)
 
         if res is _undef:
@@ -168,7 +173,7 @@ def cache(func):
     caching = {}
 
     def inner(*args, **kwargs):
-        key = hash_from_stream(len(args) + len(kwargs), _make_key_stream(args, kwargs))
+        key = hash_from_stream(len(args) + len(kwargs), _make_dense_key_stream(args, kwargs))
         res = caching.get(key, _undef)
 
         if res is _undef:
