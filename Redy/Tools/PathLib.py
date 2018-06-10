@@ -92,6 +92,37 @@ class Path:
     def is_dir(self) -> bool:
         return os.path.isdir(str(self))
 
+    def move_to(self, path: Union[str, 'Path'], exception_handler: Optional[Callable[[Exception], None]] = None):
+        if isinstance(path, str):
+            path = Path(path)
+        try:
+            relative = self.relative()
+            if self.is_dir():
+                path = path.into(relative)
+                if not path.exists():
+                    path.mkdir()
+
+                def _move_to(from_: Path, to_: Path):
+                    for each in from_.list_dir():
+                        relative = each.relative()
+                        if each.is_dir():
+                            each_to = to_.into(relative)
+                            if not each_to.exists():
+                                each_to.mkdir()
+                            _move_to(each, each_to)
+                        else:
+                            with each.open('rb') as read_item, to_.into(relative).open('wb') as write_item:
+                                write_item.write(read_item.read())
+
+                _move_to(self, path)
+            else:
+                with path.into(relative).open('wb') as write_item, self.open('rb') as read_item:
+                    write_item.write(read_item.read())
+        except Exception as e:
+            if exception_handler is None:
+                raise e
+            exception_handler(e)
+
     def list_dir(self, filter_fn=None) -> 'Tuple[Path, ...]':
         path = str(self)
         items = map(lambda _: path_join((path, _)), os.listdir(path))

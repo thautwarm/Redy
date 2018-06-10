@@ -9,6 +9,7 @@ from Redy.Collections import Core, Graph, Traversal, LinkedList
 from Redy.Async import Accompany, Delegate
 from Redy.Magic import Pattern, Classic
 from Redy.ADT import Core as GADTCore
+from Redy.Opt import ConstExpr
 
 pattern_clear = re.compile('\s+\>\>\> ')
 accept_private_doc = ('__add__', '__iadd__', '__sub__', '__isub__', '__mul__', '__imul__',
@@ -94,3 +95,5 @@ if __name__ == '__main__':
     generate_doc_for(TypeInterface)
     generate_doc_for(Classic)
     generate_doc_for(GADTCore)
+    generate_doc_for(ConstExpr)
+

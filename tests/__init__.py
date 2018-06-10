@@ -4,6 +4,8 @@ def test_all():
     from tests.Tools import PathLib, Version, TypeInterface
     from tests.Magic import Pattern, Classic
     from tests.ADT import Core
+    from tests.Opt import ConstExpr
+
 
 
 test_all()
