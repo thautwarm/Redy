@@ -276,7 +276,7 @@ def const_link(code: types.CodeType, constant_symbols: dict, addtional_consts):
 
 def _constexpr_transform(fn):
     """
-    >>> from Redy.Opt.ConstExpr import constexpr, const, optimize
+    >>> from Redy.Opt.ConstExpr import constexpr, const, optimize, macro
     >>> import dis
     >>> a = 1; b = ""; c = object()
     >>> x = 1
@@ -292,6 +292,50 @@ def _constexpr_transform(fn):
     >>>         return val2, y
     >>> assert f(1) == (None, 1)
     >>> dis.dis(f)
+    >>> @optimize
+    >>> def f(x):
+    >>>     d: const = 1
+    >>>     return x + d + constexpr[2]
+    #
+    #
+    >>> dis.dis(f)
+    >>> print('result:', f(1))
+    #
+    #
+    >>> @optimize
+    >>> def f(z):
+    >>>     @macro
+    >>>     def g(a):
+    >>>         x = a + 1
+    #
+    >>>     g(z)
+    >>>     return x
+    #
+    #
+    >>> dis.dis(f)
+    >>> print('result:', f(1))
+    #
+    >>> c = 10
+    #
+    #
+    >>> @optimize
+    >>> def f(x):
+    >>>     if constexpr[1 + c < 10]:
+    >>>         return x + 1
+    >>>     else:
+    >>>         return x - 1
+    #
+    #
+    >>> print(dis.dis(f))
+    >>> print(f(5))
+    #
+    >>> @optimize
+    >>> def f(x):
+    >>>     return (x + constexpr[c * 20]) if constexpr[c > 10] else  constexpr[c - 2]
+    #
+    >>> dis.dis(f)
+    >>> print(f(20))
+
     """
     module = ast.parse(inspect.getsource(fn))
     fn_ast = module.body[0]
@@ -319,46 +363,3 @@ def _constexpr_transform(fn):
 
 optimize.fn = _constexpr_transform
 
-# @optimize
-# def f(x):
-#     d: const = 1
-#     return x + d + constexpr[2]
-#
-#
-# dis.dis(f)
-# print('result:', f(1))
-#
-#
-# @optimize
-# def f(z):
-#     @macro
-#     def g(a):
-#         x = a + 1
-#
-#     g(z)
-#     return x
-#
-#
-# dis.dis(f)
-# print('result:', f(1))
-#
-# c = 10
-#
-#
-# @optimize
-# def f(x):
-#     if constexpr[1 + c < 10]:
-#         return x + 1
-#     else:
-#         return x - 1
-#
-#
-# print(dis.dis(f))
-# print(f(5))
-#
-# @optimize
-# def f(x):
-#     return (x + constexpr[c * 20]) if constexpr[c > 10] else  constexpr[c - 2]
-#
-# dis.dis(f)
-# print(f(20))
