@@ -136,7 +136,8 @@ def record(cls_def):
 
     >>> s = S("sam", "I/O", 1)
     """
-    typ: type = namedtuple(cls_def.__name__, list(cls_def.__annotations__.keys()))
+    annotations = getattr(cls_def, '__annotations__', {})
+    typ: type = namedtuple(cls_def.__name__, list(annotations.keys()))
     return cls_def.__class__(cls_def.__name__, (typ, *cls_def.__bases__), dict(cls_def.__dict__))
 
 

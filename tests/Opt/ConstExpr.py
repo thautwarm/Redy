@@ -46,3 +46,17 @@ def f(x):
     return (x + constexpr[c * 20]) if constexpr[c > 10] else  constexpr[c - 2]
 dis.dis(f)
 print(f(20))
+def g(lst: list):
+   k = 1
+   @optimize
+   def _():
+       nonlocal k
+       f: const = lst.append
+       for i in range(1000):
+           f(i)
+       k += 1
+       f(k)
+   _()
+   return lst
+# dis.dis(g)
+print(g([]))
