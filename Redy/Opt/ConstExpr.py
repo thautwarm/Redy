@@ -1,3 +1,13 @@
+"""
+
+@feature  # use default features: const, constexpr, macro
+def f():
+    pass
+
+@feature(service1)
+def f():
+    pass
+"""
 import ast
 import inspect
 import opcode
@@ -423,11 +433,11 @@ def _constexpr_transform(fn):
     const_if = new_transformer(ce, ConstExprIf)
     name_fold = new_transformer(ce, ConstExprNameFold)
 
-    body = _visit_suite(macro_def.visit, body)
-    body = _visit_suite(macro_invoke.visit, body)
-    body = _visit_suite(const_def.visit, body)
-    body = _visit_suite(const_if.visit, body)
-    body = _visit_suite(name_fold.visit, body)
+    body = _visit_suite(macro_def.ast_transform, body)
+    body = _visit_suite(macro_invoke.ast_transform, body)
+    body = _visit_suite(const_def.ast_transform, body)
+    body = _visit_suite(const_if.ast_transform, body)
+    body = _visit_suite(name_fold.ast_transform, body)
     fn_ast.body = body
     module.body = [fn_ast]
     code = compile(module, "<const-optimize>", "exec")
@@ -446,5 +456,3 @@ def _constexpr_transform(fn):
 
 
 optimize.fn = _constexpr_transform
-
-
