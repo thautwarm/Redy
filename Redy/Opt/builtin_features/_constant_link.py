@@ -15,11 +15,13 @@ class ConstDecl(ASTService):
 
     # noinspection PyUnresolvedReferences
     def initialize_env(self, feature: 'Feature') -> None:
+        def constructor():
+            return build_local_from_closure(feature.func.__closure__, feature.func.__code__.co_freevars,
+                                            feature.func.__globals__)
+
         state = feature.state
 
-        cons = lambda: build_local_from_closure(feature.func.__closure__, feature.func.__code__.co_freevars,
-                                                feature.func.__globals__)
-        self.current_ctx = initialize_state(state, 'context.current', cons)
+        self.current_ctx = initialize_state(state, 'context.current', constructor)
 
         self.const_symbols = initialize_state(state, 'const.symbols', dict)
 
@@ -49,9 +51,13 @@ class ConstDecl(ASTService):
         feature.func: types.FunctionType
 
         if isinstance(elem.ctx, ast.Store):
-            raise ValueError("Assign constant symbol `{}` at "
-                             "lineno {}, column {} in file {}".format(elem.id, elem.lineno, elem.col_offset,
-                                                                      feature.func.__code__.co_filename))
+            raise ValueError("Assign constant symbol `{sym}` at \n"
+                             "  File {file}, "
+                             "lineno {lineno}, "
+                             "column {colno}.".format(sym=elem.id,
+                                                      lineno=elem.lineno + feature.func.__code__.co_firstlineno,
+                                                      colno=elem.col_offset,
+                                                      file=repr(feature.func.__code__.co_filename)))
 
         name = self.const_symbols[elem.id]
         elem.id = name

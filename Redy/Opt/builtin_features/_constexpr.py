@@ -9,9 +9,11 @@ class ConstEval(ASTService):
     def initialize_env(self, feature: 'Feature'):
         state = feature.state
 
-        cons = lambda: build_local_from_closure(feature.func.__closure__, feature.func.__code__.co_freevars,
-                                                feature.func.__globals__)
-        self.current_ctx = initialize_state(state, 'context.current', cons)
+        def constructor():
+            return build_local_from_closure(feature.func.__closure__, feature.func.__code__.co_freevars,
+                                            feature.func.__globals__)
+
+        self.current_ctx = initialize_state(state, 'context.current', constructor)
 
         self.const_link_table = initialize_state(state, 'const.link_table', dict)
 
@@ -20,6 +22,29 @@ class ConstEval(ASTService):
             if self.current_ctx.get(elem.value.id) is constexpr:
                 # constexpr = (ConstEval(), ConstLink())
                 return self.const_eval
+        elif isinstance(elem, (ast.If, ast.IfExp)):
+            test = elem.test
+            if isinstance(test, ast.Subscript) and isinstance(test.value, ast.Name):
+                subscr_name = test.value.id
+                if self.current_ctx.get(subscr_name) is constexpr:
+                    if not isinstance(test.slice, ast.Index):
+                        code: types.CodeType = feature.func.__code__
+                        raise ValueError("Constexpr cannot be applied on a slice at\n"
+                                         "  File {file}, "
+                                         "lineno {lineno}, "
+                                         "column {colno}.".format(file=code.co_filename,
+                                                                  lineno=code.co_firstlineno + elem.lineno,
+                                                                  colno=elem.col_offset))
+                return self.const_if
+
+    def const_if(self, feature: 'Feature', elem: ast.AST):
+        test = elem.test
+        result = compiling_time_eval(test.slice.value, self.current_ctx, feature.func.__code__.co_filename)
+
+        if isinstance(elem, ast.If):
+            return [feature.ast_transform(each) for each in (elem.body if result else elem.orelse)]
+        else:
+            return feature.ast_transform(elem.body if result else elem.orelse)
 
     def const_eval(self, feature: 'Feature', elem: ast.AST):
         expr = elem.slice.value

@@ -2,6 +2,7 @@ import ast
 import inspect
 import types
 import collections
+import opcode
 from .basic import Service
 
 try:
@@ -67,7 +68,7 @@ class Feature:
     def state(self):
         return self._state
 
-    def _apply_ast_service(self, elem):
+    def apply_ast_service(self, elem):
         done = False
         for dispatch_getter in self._ast_services:
             application = dispatch_getter(self, elem)
@@ -78,11 +79,15 @@ class Feature:
 
         return elem if done else self.ast_transform(elem)
 
-    def _apply_bc_service(self, bc):
+    def apply_bc_service(self, bc: 'bytecode.Instr'):
+        if bc.opcode in opcode.hasconst and isinstance(bc.arg, types.CodeType):
+            bc.arg = self.bc_transform(Bytecode.from_code(bc.arg)).to_code()
+
         for dispatch_getter in self._bc_services:
             application = dispatch_getter(self, bc)
             if application is not None:
                 bc = application(self, bc)
+
         return bc
 
     def ast_transform(self, node):
@@ -91,7 +96,7 @@ class Feature:
                 new_values = []
                 for value in old_value:
                     if isinstance(value, ast.AST):
-                        value = self._apply_ast_service(value)
+                        value = self.apply_ast_service(value)
                         if value is None:
                             continue
                         elif not isinstance(value, ast.AST):
@@ -100,7 +105,7 @@ class Feature:
                     new_values.append(value)
                 old_value[:] = new_values
             elif isinstance(old_value, ast.AST):
-                new_node = self._apply_ast_service(old_value)
+                new_node = self.apply_ast_service(old_value)
                 if new_node is None:
                     delattr(node, field)
                 else:
@@ -108,11 +113,16 @@ class Feature:
         return node
 
     def bc_transform(self, bc: 'Bytecode'):
-        apply = self._apply_bc_service
-        new_bc = Bytecode([apply(each) for each in bc])
-        new_bc.argnames = bc.argnames
-        new_bc._copy_attr_from(bc)
-        return new_bc
+        apply = self.apply_bc_service
+        for i in range(len(bc)):
+            bc[i] = apply(bc[i])
+        return bc
+
+
+        # new_bc = Bytecode([apply(each) for each in bc])
+        # new_bc.argnames = bc.argnames
+        # new_bc._copy_attr_from(bc)
+        # return new_bc
 
     def __call__(self, func: types.FunctionType):
         self.func = func
@@ -146,6 +156,3 @@ class Feature:
                               '`pip install bytecode`.')
         f = types.FunctionType(code_object, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
         return f
-
-
-feature = Feature

@@ -1,21 +1,13 @@
-from Redy.Opt.builtin_features import const, feature, show_ast, constexpr
-
-a = 2
+from Redy.Opt import feature, constexpr, const, macro, define
 
 
-@feature(*const)
-def f(x):
-    g: const = a + 1
-    return g
+@feature(macro)
+def g():
+    with macro.setting:
+        X = define(S(a, b), a)
+
+    with macro[X]:
+        print(S(1, 2))
 
 
-print(f(1))
-
-
-@feature(const, constexpr)
-def f(x):
-    y = constexpr[1 + a]
-    print(x + y)
-
-
-f(1)
+print(g())

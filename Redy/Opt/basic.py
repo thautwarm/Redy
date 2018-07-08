@@ -47,7 +47,12 @@ class CompilingTimeContext(typing.Mapping):
         return res.cell_contents
 
     def __setitem__(self, key, value):
-        self.locals[key].cell_contents = value
+        cell = self.locals.get(key)
+
+        if cell:
+            cell.cell_contents = value
+        else:
+            self.globals[key] = value
 
 
 def build_local_from_closure(closure: tuple, free_vars, globals):
@@ -56,6 +61,11 @@ def build_local_from_closure(closure: tuple, free_vars, globals):
 
 def compiling_time_eval(expr: ast.AST, ctx: CompilingTimeContext, filename=""):
     return eval(compile(ast.Expression(expr), filename, "eval"), ctx.globals, ctx)
+
+
+def compiling_time_exec(stmt: ast.stmt, ctx: CompilingTimeContext, filename=""):
+    return eval(compile(ast.Module(lineno=stmt.lineno, col_offset=stmt.col_offset, body=[stmt]), filename, "exec"),
+                ctx.globals, ctx)
 
 
 def initialize_state(state: dict, name: str, constructor):

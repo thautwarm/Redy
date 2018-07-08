@@ -9,4 +9,3 @@ try:
 except:
     pass
 
-undefined = object()
