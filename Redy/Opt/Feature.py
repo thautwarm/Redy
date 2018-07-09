@@ -2,6 +2,7 @@ import ast
 import inspect
 import types
 import collections
+import opcode
 from .basic import Service
 
 try:
@@ -71,11 +72,12 @@ class Feature:
         return application(elem)
 
     def apply_bc_service(self, bc):
-        for dispatch_getter in self._bc_services:
-            application = dispatch_getter(self, bc)
-            if application is not None:
-                bc = application(self, bc)
-        return bc
+        if bc.opcode in opcode.hasconst and isinstance(bc.arg, types.CodeType):
+            bc.arg = self.bc_transform(Bytecode.from_code(bc.arg)).to_code()
+        application = self._current_service(self, bc)
+        if not application:
+            return bc
+        return application(bc)
 
     def ast_transform(self, node):
         for field, old_value in ast.iter_fields(node):
