@@ -1,6 +1,10 @@
 import typing, abc
 import ast
-from astpretty import pprint as show_ast
+
+try:
+    from astpretty import pprint as show_ast
+except:
+    pass
 
 try:
     from .Feature import Feature

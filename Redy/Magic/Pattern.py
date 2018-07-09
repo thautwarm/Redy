@@ -7,17 +7,34 @@ __all__ = ["IPattern", "Pattern"]
 class IPattern:
     func: 'function'
     templates: dict
+    case: '_Case'
 
     def match(self, case):
         def add(func):
             self.templates[case] = func
             if func.__doc__:
                 self.__doc__ += func.__doc__
-
             return func if hasattr(func, '__name__') and func.__name__ != self.__name__ else self
 
         return add
 
+
+class _Case:
+    def __new__(cls, self, case):
+        return IPattern.match(self, case)
+
+    @classmethod
+    def ret_pattern(cls, self, case):
+        pattern_adder = IPattern.match(self, case)
+
+        def ret_self(func):
+            pattern_adder(func)
+            return self
+
+        return ret_self
+
+
+IPattern.case = _Case
 
 _empty = inspect._empty
 
@@ -84,7 +101,6 @@ class Pattern:
         arg_info = inspect.getfullargspec(func)
 
         if arg_info.defaults or arg_info.kwonlyargs or arg_info.varkw or arg_info.varargs:
-
             def new_func(*args, **kwargs):
                 case = func(*args, **kwargs)
                 f = new_func.templates.get(case)
@@ -94,7 +110,6 @@ class Pattern:
                         raise TypeError(f'Unknown entry for case {case}.')
                 return f(*args, **kwargs)
         else:
-
             args = ",".join(inspect.getargs(func.__code__).args)
             # noinspection PyUnresolvedReferences
             scope = {'func': func, **func.__globals__}
@@ -111,5 +126,6 @@ class Pattern:
         new_func.templates = {}
         new_func.__name__ = func.__name__
         new_func.case = new_func.match = lambda case: IPattern.match(new_func, case)
+        new_func.case.ret_pattern = lambda case: IPattern.case.ret_pattern(new_func, case)
         new_func.__doc__ = "Redy pattern matching function. \n{}".format(func.__doc__ if func.__doc__ else '')
         return new_func

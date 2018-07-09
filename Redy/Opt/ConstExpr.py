@@ -16,7 +16,8 @@ import textwrap
 import types
 from typing import Mapping
 from collections import OrderedDict
-
+import warnings
+warnings.warn("The module Redy.Opt.ConstExpr is deprecated. Use Redy.Opt.Feature instead.", DeprecationWarning)
 __all__ = ['ConstToken', 'constexpr', 'const', 'macro', 'optimize']
 
 
@@ -433,11 +434,11 @@ def _constexpr_transform(fn):
     const_if = new_transformer(ce, ConstExprIf)
     name_fold = new_transformer(ce, ConstExprNameFold)
 
-    body = _visit_suite(macro_def.ast_transform, body)
-    body = _visit_suite(macro_invoke.ast_transform, body)
-    body = _visit_suite(const_def.ast_transform, body)
-    body = _visit_suite(const_if.ast_transform, body)
-    body = _visit_suite(name_fold.ast_transform, body)
+    body = _visit_suite(macro_def.visit, body)
+    body = _visit_suite(macro_invoke.visit, body)
+    body = _visit_suite(const_def.visit, body)
+    body = _visit_suite(const_if.visit, body)
+    body = _visit_suite(name_fold.visit, body)
     fn_ast.body = body
     module.body = [fn_ast]
     code = compile(module, "<const-optimize>", "exec")

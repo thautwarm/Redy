@@ -5,6 +5,32 @@ import functools
 import time
 from ..Typing import *
 
+try:
+    from chardet import detect as _encoding_detect
+
+
+    def auto_open_file(file, mode):
+        with open(file, 'rb') as sample:
+            encoding = _encoding_detect(sample.read(1024))['encoding']
+        return open(file, mode, encoding=encoding)
+except:
+    import warnings
+
+    warnings.warn('No module chardet found. `auto_open_file` function could be inefficient.')
+    _encodings = ['utf8', 'gb18030', 'gbk', 'latin-1']
+
+
+    def auto_open_file(file, mode):
+        for each in _encodings:
+            try:
+                stream = open(file, mode, encoding=each)
+                stream.read(1)
+                stream.seek(0)
+                return stream
+            except UnicodeError:
+                continue
+        raise UnicodeError
+
 __all__ = ['Path']
 
 
@@ -154,8 +180,17 @@ class Path:
     def __str__(self):
         return path_join(self._path)
 
-    def open(self, mode):
-        return io.open(str(self), mode)
+    def open(self, mode, encoding='utf8'):
+        """
+
+        :param mode: the same as the argument `mode` of `builtins.open`
+        :param encoding: similar to the argument `encoding` of `builtins.open`.
+                         You can use `encoding='auto'` to automatically detect the encoding.
+        :return: the same as the return of ``builtins.open`.
+        """
+        if encoding == 'auto':
+            return auto_open_file(str(self), mode)
+        return io.open(str(self), mode, encoding=encoding)
 
     def delete(self):
         if self.is_dir():

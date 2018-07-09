@@ -1,4 +1,4 @@
-from Redy.Opt.builtin_features import const, feature, show_ast, constexpr
+from Redy.Opt.builtin_features import const, feature, constexpr
 
 a = 2
 
