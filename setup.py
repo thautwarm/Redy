@@ -20,7 +20,7 @@ setup(name='Redy',
       author_email='twshere@outlook.com',
       include_package_data=True,
       requires=['bytecode'],
-      packages=['Redy', 'Redy.Async', 'Redy.Collections', 'Redy.Magic', 'Redy.Tools', 'Redy.ADT', 'Redy.Opt'],
+      packages=['Redy', 'Redy.Async', 'Redy.Collections', 'Redy.Magic', 'Redy.Tools', 'Redy.ADT', 'Redy.Opt', 'Redy.Opt.builtin_features'],
       platforms='any',
       classifiers=[
           'Programming Language :: Python :: 3.6',

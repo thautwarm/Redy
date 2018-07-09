@@ -31,13 +31,12 @@ class Feature:
 
         self._services = list(_flatten(services, set()))
 
-        self._ast_services = None
-        self._bc_services = None
+        self._current_service = None
 
         # function essential factors
         self.func: types.FunctionType = None
 
-    def initialize_env(self):
+    def setup_env(self):
         services = self._services
         ast_services = []
         bc_services = []
@@ -53,9 +52,7 @@ class Feature:
             else:
                 raise TypeError("Requires a ASTService or BCService, got {}.".format(type(each)))
             each.initialize_env(self)
-
-        self._bc_services = bc_services
-        self._ast_services = ast_services
+        return ast_services, bc_services
 
     def add_service(self, service: Service):
         self._services.append(service)
@@ -67,18 +64,13 @@ class Feature:
     def state(self):
         return self._state
 
-    def _apply_ast_service(self, elem):
-        done = False
-        for dispatch_getter in self._ast_services:
-            application = dispatch_getter(self, elem)
-            if application is not None:
-                elem = application(self, elem)
-                if not done:
-                    done = True
+    def apply_ast_service(self, elem):
+        application = self._current_service(self, elem)
+        if not application:
+            return self.ast_transform(elem)
+        return application(elem)
 
-        return elem if done else self.ast_transform(elem)
-
-    def _apply_bc_service(self, bc):
+    def apply_bc_service(self, bc):
         for dispatch_getter in self._bc_services:
             application = dispatch_getter(self, bc)
             if application is not None:
@@ -91,7 +83,7 @@ class Feature:
                 new_values = []
                 for value in old_value:
                     if isinstance(value, ast.AST):
-                        value = self._apply_ast_service(value)
+                        value = self.apply_ast_service(value)
                         if value is None:
                             continue
                         elif not isinstance(value, ast.AST):
@@ -100,7 +92,7 @@ class Feature:
                     new_values.append(value)
                 old_value[:] = new_values
             elif isinstance(old_value, ast.AST):
-                new_node = self._apply_ast_service(old_value)
+                new_node = self.apply_ast_service(old_value)
                 if new_node is None:
                     delattr(node, field)
                 else:
@@ -108,7 +100,7 @@ class Feature:
         return node
 
     def bc_transform(self, bc: 'Bytecode'):
-        apply = self._apply_bc_service
+        apply = self.apply_bc_service
         new_bc = Bytecode([apply(each) for each in bc])
         new_bc.argnames = bc.argnames
         new_bc._copy_attr_from(bc)
@@ -116,7 +108,7 @@ class Feature:
 
     def __call__(self, func: types.FunctionType):
         self.func = func
-        self.initialize_env()
+        self.setup_env()
 
         if self._ast_services:
             src_code: str = inspect.getsource(func)
