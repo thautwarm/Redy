@@ -6,10 +6,11 @@ IsExpr = bool
 
 class Macro(ASTService):
     current_ctx: CompilingTimeContext = RequestContext()
-    macro_namespace: typing.Dict[str, typing.Tuple[IsExpr, ast.FunctionDef]] = Require("macro.namespace", dict)
+    macro_namespace: typing.Dict[str, typing.Tuple[IsExpr, ast.FunctionDef]]
 
-    def __init__(self):
+    def __init__(self, macros=None):
         self.inner_transformer = Feature()
+        self.macro_namespace = macros if macros else {}
 
     def expr(self, func):
         mod: ast.Module = get_ast(func.__code__)
@@ -63,8 +64,8 @@ class Macro(ASTService):
         terms = call.args
         is_expr, macro = self.macro_namespace[call.func.id]
         if not is_expr:
-            raise ValueError(
-                "Cannot use a stmt macro `{}` as expr!\n at {}.".format(call.func.id, get_location(call, self.feature)))
+            raise ValueError("Cannot use a stmt macro `{}` as expr!\n at {}.".format(call.func.id,
+                                                                                     get_location(call, self.feature)))
         args = macro.args.args
 
         if len(args) != len(terms):

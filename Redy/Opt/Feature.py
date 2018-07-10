@@ -185,11 +185,16 @@ class Feature:
 
     def __call__(self, target_function: types.FunctionType):
         self.func = target_function
+        original_code = target_function.__code__
         ast_services, bc_services = self.setup_env()
+
+        original_closure = target_function.__closure__
+        if original_closure is None:
+            original_closure = ()
 
         if ast_services:
             apply = self.apply_current_ast_service
-            node = get_ast(target_function.__code__)
+            node = get_ast(original_code)
 
             for self._current_service in ast_services:
                 node = apply(node)
@@ -199,7 +204,7 @@ class Feature:
                     # e.g: Interpreter, IR/Bytecode Generation
                     return node
 
-            code_object = compile(node, self.func.__code__.co_filename, 'exec')
+            code_object = compile(node, original_code.co_filename, 'exec')
             # for `compile` with mode 'exec' yields code objects of some statements instead of functions.
             # So, I try to get the corresponding code object of target function in the following way.
             code_object = next(each for each in code_object.co_consts if
@@ -207,29 +212,26 @@ class Feature:
 
         else:
             # if no ast service, we needn't do any thing than take the code object of target function.
-            code_object = target_function.__code__
+            code_object = original_code
 
-        original_free_vars = target_function.__code__.co_freevars
+        new_free_vars = code_object.co_freevars
+
         if bc_services:
-            try:
-                bc = Bytecode.from_code(code_object)
-                for self._current_service in bc_services:
-                    bc = self.bc_transform(bc)
-                # bytecode can only be transformed to bytecode.
-                bc.freevars = [each for each in original_free_vars]
-                code_object = bc.to_code()
+            bc = Bytecode.from_code(code_object)
+            for self._current_service in bc_services:
+                bc = self.bc_transform(bc)
+            # bytecode can only be transformed to bytecode.
 
-            except NameError:
-                import warnings
-                warnings.warn('You have register some bytecode services but the library `bytecode` is required.\n'
-                              'See `https://github.com/vstinner/bytecode` and you can get it by'
-                              '`pip install bytecode`.')
+            code_object = bc.to_code()
+            new_free_vars = code_object.co_freevars
+
+        closure = tuple(var for name, var in zip(original_code.co_freevars, original_closure) if name in new_free_vars)
 
         # noinspection PyArgumentList
         # laji pycharm xjb reports argument info.
-        f = types.FunctionType(code_object, target_function.__globals__, target_function.__name__,
-                               target_function.__defaults__, target_function.__closure__)
-        return f
+
+        return types.FunctionType(code_object, target_function.__globals__, target_function.__name__,
+                                  target_function.__defaults__, closure)
 
 
 class ASTService(Service):

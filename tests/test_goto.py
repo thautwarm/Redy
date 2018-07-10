@@ -3,7 +3,7 @@ from dis import dis
 
 
 @feature(goto)
-def loop1(x):
+def very_big_loop(x):
     task1: label
     task2: label
     end: label
@@ -137,8 +137,9 @@ def loop1(x):
     print('good bye')
 
 
-dis(loop1)
+def test_loop():
+    dis(very_big_loop)
 
-loop1('1')
-loop1('2')
-loop1('end')
+    very_big_loop('1')
+    very_big_loop('2')
+    very_big_loop('end')

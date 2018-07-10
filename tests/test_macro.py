@@ -13,17 +13,21 @@ def macro_example(x):
     just_return(1)
 
 
-@macro.stmt
-def print_some_and_return_1(s):
-    print(s)
-    return 1
+def test_macro():
+    @macro.stmt
+    def print_some_and_return_1(s):
+        print(s)
+        return 1
+
+    @feature(macro)
+    def macro_example2():
+        print_some_and_return_1("abcdefg")
+
+    dis(macro_example)
+    dis(macro_example2)
+
+    print(macro_example(1))
+    macro_example2()
 
 
-@feature(macro)
-def macro_example2():
-    print_some_and_return_1("abcdefg")
-
-
-dis(macro_example)
-print(macro_example(1))
-macro_example2()
+test_macro()
