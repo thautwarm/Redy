@@ -30,6 +30,28 @@ def get_location(ast_: ast.AST, feature: 'Feature'):
     return ' File {} line {}'.format((filename.replace("/", '\\')), first_lineno)
 
 
+class NameSupervisor(ASTService):
+    names_to_supervise: typing.Dict[str, typing.Callable[[ast.Name], None]] = Require("supervise.names", dict)
+
+    def is_depth_first(self):
+        return False
+
+    def register(self, feature: 'Feature'):
+        services = feature.services
+        if self in services:
+            if not services[-1] is self:
+                services.remove(self)
+                services.append(self)
+        else:
+            services.append(self)
+
+    def get_dispatch(self, elem):
+        if isinstance(elem, ast.Name):
+            handler = self.names_to_supervise.get(elem.id)
+            if handler:
+                handler(elem)
+
+
 _undef = object()
 
 
@@ -37,7 +59,6 @@ class AggregateIndexer:
     _fields: typing.Dict[str, typing.Dict[object, dict]]
 
     def __init__(self):
-
         self._fields = {}
         for each in self.__annotations__:
             self._fields[each] = {}
@@ -65,7 +86,6 @@ class AggregateIndexer:
             for k, v in others:
                 fields[k][v] = index_map
         else:
-
             for k, v in others:
                 index_map[k] = v
                 fields[k][v] = index_map

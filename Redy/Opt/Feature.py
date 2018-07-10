@@ -8,7 +8,7 @@ import textwrap
 import typing
 import re
 
-from .basic import Service, show_ast
+from .basic import Service
 
 try:
     from .bytecode_api import BCService, Bytecode
@@ -17,6 +17,19 @@ except:
     pass
 
 _whitespace = re.compile('[ \t]+')
+
+
+class FeatureWith:
+    def __init__(self, feature, service):
+        self.feature: Feature = feature
+        self.service: Service = service
+
+    def __enter__(self):
+        self.feature.add_service(self.service)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.feature.rem_service(self.service)
 
 
 class Feature:
@@ -34,7 +47,10 @@ class Feature:
 
         self._state = state if state else {}
 
-        self._services = list(_flatten(services, set()))
+        self._services = []
+        for each in _flatten(services, set()):
+            each.register(self)
+
         self._current_service: typing.Union[ASTService, BCService] = None
 
         # function essential factors
@@ -66,66 +82,73 @@ class Feature:
     def rem_service(self, service):
         self._services.remove(service)
 
-    def just_apply_ast_transformation(self, ast_: ast.AST):
-        self.setup_env()
-        for each in self._services:
+    def just_apply_ast_transformation(self, ast_: ast.AST, setup_env=True):
+        if setup_env:
+            self.setup_env()
+        for each in tuple(self._services):
             if isinstance(each, ASTService):
                 self._current_service = each
-                ast_ = self.apply_ast_service(ast_)
+                ast_ = self.apply_current_ast_service(ast_)
                 each.exit_env()
                 if not isinstance(ast_, ast.AST):
                     return ast_
 
         return ast_
 
+    def use_service(self, service: Service):
+        return FeatureWith(self, service)
+
     @property
     def state(self):
         return self._state
 
-    def apply_ast_service(self, elem):
+    @property
+    def services(self):
+        return self._services
+
+    def apply_external_ast_service(self, elem, service: 'ASTService'):
+        self._current_service = service
+        service.setup_env(self)
+        service.feature = self
+        result = self.apply_current_ast_service(elem)
+        service.exit_env()
+        return result
+
+    def apply_external_bc_service(self, bc: bytecode.Bytecode, service: 'BCService'):
+        self._current_service = service
+        service.setup_env(self)
+        service.feature = self
+        result = self.bc_transform(bc)
+        service.exit_env()
+        return result
+
+    def apply_current_ast_service(self, elem):
         transform_inner_ast = self.ast_transform
         service = self._current_service
-        if service.is_depth_first:
-            elem = transform_inner_ast(elem)
 
-            application = service(elem)
-            if application:
-                return application(elem)
-            else:  # use `else` for building clear layer
-                return elem
-        else:
-            application = service(elem)
+        application = service(elem)
 
-            if not application:
-                return transform_inner_ast(elem)
-            else:  # use `else` for building clear layer
-                return application(elem)
+        if not application:
+            return transform_inner_ast(elem)
+        else:  # use `else` for building clear layer
+            return application(elem)
 
-    def apply_bc_service(self, bc):
+    def apply_current_bc_service(self, bc):
         def transform_inner_code(_bc, _self) -> typing.NoReturn:
             if hasattr(_bc, 'opcode') and _bc.opcode in opcode.hasconst and isinstance(_bc.arg, types.CodeType):
                 _bc.arg = _self.bc_transform(Bytecode.from_code(_bc.arg)).to_code()
 
         service = self._current_service
-        if service.is_depth_first:
+        application = service(bc)
+        if not application:
             transform_inner_code(bc, self)
 
-            application = service(bc)
-            if not application:
-                yield bc
-            else:  # use `else` for building clear layer
-                yield from application(bc)
-        else:
-            application = service(bc)
-            if not application:
-                transform_inner_code(bc, self)
-
-                yield bc
-            else:  # use `else` for building clear layer
-                yield from application(bc)
+            yield bc
+        else:  # use `else` for building clear layer
+            yield from application(bc)
 
     def ast_transform(self, node):
-        apply = self.apply_ast_service
+        apply = self.apply_current_ast_service
         for field, old_value in ast.iter_fields(node):
             if isinstance(old_value, list):
                 new_values = []
@@ -152,12 +175,12 @@ class Feature:
             for each in map(_app, bc):
                 yield from each
 
-        apply = self.apply_bc_service
+        apply = self.apply_current_bc_service
 
         transformed = tuple(bc_trans_stream(apply, bc))
         bc.clear()
         bc.extend(transformed)
-        bc.flags |= bytecode.CompilerFlags.OPTIMIZED
+        # bc.flags |= bytecode.CompilerFlags.OPTIMIZED
         return bc
 
     def __call__(self, target_function: types.FunctionType):
@@ -165,22 +188,8 @@ class Feature:
         ast_services, bc_services = self.setup_env()
 
         if ast_services:
-            apply = self.apply_ast_service
-
-            # fix col_offset if `func` not in the top level of module.
-            src_code: str = inspect.getsource(target_function)
-            _space = _whitespace.match(src_code)
-            col_offset = 0
-            if _space:  # the source code's column offset is not 0.
-                col_offset = _space.span()[1]  # get indentation of source code
-                # perform dedentation
-                src_code = '\n'.join(each[col_offset:] for each in src_code.splitlines())
-
-            node = ast.parse(src_code)
-            if col_offset:
-                # visit the ast and fix the col_offset.
-                self._current_service = _ColOffsetFix(col_offset)  # set current service as col_offset_fix
-                node = self.ast_transform(node)
+            apply = self.apply_current_ast_service
+            node = get_ast(target_function.__code__)
 
             for self._current_service in ast_services:
                 node = apply(node)
@@ -189,6 +198,7 @@ class Feature:
                     # Some one might prefer to transform ast into other sorts.
                     # e.g: Interpreter, IR/Bytecode Generation
                     return node
+
             code_object = compile(node, self.func.__code__.co_filename, 'exec')
             # for `compile` with mode 'exec' yields code objects of some statements instead of functions.
             # So, I try to get the corresponding code object of target function in the following way.
@@ -206,24 +216,6 @@ class Feature:
                 for self._current_service in bc_services:
                     bc = self.bc_transform(bc)
                 # bytecode can only be transformed to bytecode.
-
-                def display_blocks(blocks):
-                    for block in blocks:
-                        print("Block #%s" % (1 + blocks.get_block_index(block)))
-                        for instr in block:
-                            if isinstance(instr.arg, bytecode.BasicBlock):
-                                arg = "<block #%s>" % (1 + blocks.get_block_index(instr.arg))
-                            elif instr.arg is not bytecode.UNSET:
-                                arg = repr(instr.arg)
-                            else:
-                                arg = ''
-                            print("    %s %s" % (instr.name, arg))
-
-                        if block.next_block is not None:
-                            print("    => <block #%s>" % (1 + blocks.get_block_index(block.next_block)))
-
-                        print()
-                display_blocks(bytecode.ControlFlowGraph.from_bytecode(bc))
                 code_object = bc.to_code()
 
             except NameError:
@@ -240,33 +232,28 @@ class Feature:
 
 
 class ASTService(Service):
-
-    @property
-    @abc.abstractmethod
-    def is_depth_first(self):
-        raise NotImplementedError
+    pass
 
 
-class _ColOffsetFix(ASTService):
+class _LocationFix(ASTService):
 
     def setup_env(self, feature: 'Feature') -> None:
         pass
 
-    def __init__(self, col_offset: int):
+    def __init__(self, first_lineno: int, col_offset: int):
+        self.first_lineno = first_lineno
         self.col_offset = col_offset
-
-    @property
-    def is_depth_first(self):
-        return True
 
     def get_dispatch(self, elem: ast.AST):
         return self.fix
 
     def fix(self, elem: ast.AST):
         if hasattr(elem, 'lineno'):  # oh, lineno is shorter than col_offset!
+            # noinspection PyUnresolvedReferences
             elem.col_offset += self.col_offset
+            elem.lineno += self.first_lineno
 
-        return elem
+        return self.feature.ast_transform(elem)
 
 
 class _ConstClosure(BCService):
@@ -277,12 +264,29 @@ class _ConstClosure(BCService):
     def __init__(self, mapping: typing.Dict[str, object]):
         self.trans_rule = mapping
 
-    def is_depth_first(self):
-        return False
-
     def get_dispatch(self, elem: bytecode.Instr):
         if hasattr(elem, 'name') and elem.name == 'LOAD_DEREF' and elem.arg.name in self.trans_rule:
             return self.replace
 
     def replace(self, elem: bytecode.Instr):
         yield bytecode.Instr('LOAD_CONST', self.trans_rule[elem.arg.name])
+
+
+_internal_feature = Feature()
+
+
+def get_ast(code: types.CodeType):
+    # fix col_offset if `func` not in the top level of module.
+    src_code: str = inspect.getsource(code)
+    _space = _whitespace.match(src_code)
+
+    col_offset = 0
+    if _space:  # the source code's column offset is not 0.
+        col_offset = _space.span()[1]  # get indentation of source code
+        # perform dedentation
+        src_code = '\n'.join(each[col_offset:] for each in src_code.splitlines())
+
+    node = ast.parse(src_code)
+    first_lineno = code.co_firstlineno
+    # visit the ast and fix the lineno and col_offset.
+    return _internal_feature.apply_external_ast_service(node, _LocationFix(first_lineno, col_offset))

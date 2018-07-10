@@ -13,8 +13,4 @@ Bytecode = bytecode.Bytecode
 
 
 class BCService(Service):
-    @property
-    @abc.abstractmethod
-    def is_depth_first(self):
-        raise NotImplementedError
     pass

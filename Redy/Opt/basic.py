@@ -7,11 +7,7 @@ from .utils import *
 from Redy.Magic.Classic import const_return
 import inspect
 
-_bc = opcode.opmap
-_not_in_cmp_instruction_idx = opcode.cmp_op.index('not in')
-
 try:
-    from astpretty import pprint as show_ast
     import bytecode
 
     _has_bytecode = True
@@ -51,10 +47,12 @@ class Require(_Require, globals()['BaseRequire']):  # to avoid wrong type hintin
     state_area: str
     constructor: typing.Callable
 
+
 @const_return
 def _load_future():
     from .Feature import Feature, _ConstClosure
     return Feature, _ConstClosure
+
 
 class MetaService(type):
 
@@ -105,12 +103,6 @@ class Service(metaclass=MetaService):
     def get_dispatch(self, elem) -> typing.Optional[typing.Callable]:
         raise NotImplemented
 
-    def setup_env(self, feature: 'Feature') -> None:
-        pass
-
-    def exit_env(self):
-        pass
-
     @property
     def feature(self):
         return self._feature
@@ -118,6 +110,15 @@ class Service(metaclass=MetaService):
     @feature.setter
     def feature(self, _):
         self._feature = _
+
+    def register(self, feature: 'Feature'):
+        feature.services.append(self)
+
+    def setup_env(self, feature: 'Feature') -> None:
+        pass
+
+    def exit_env(self):
+        pass
 
     def __call__(self, elem):
         return self.get_dispatch(elem)
@@ -173,3 +174,4 @@ def initialize_state(state: dict, name: str, constructor):
     else:
         this = state[name]
     return this
+
