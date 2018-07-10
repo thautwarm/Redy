@@ -3,7 +3,7 @@ import types
 _func: types.FunctionType
 
 
-class _make_func:
+class fun_maker:
     def __call__(self, argcount=_func.__code__.co_argcount, kwonlyargcount=_func.__code__.co_kwonlyargcount,
                  nlocals=_func.__code__.co_nlocals, stacksize=_func.__code__.co_stacksize,
                  flags=_func.__code__.co_flags, code=_func.__code__.co_code, consts=_func.__code__.co_consts,
@@ -13,4 +13,5 @@ class _make_func:
                  freevars=_func.__code__.co_freevars, cellvars=_func.__code__.co_cellvars) -> types.FunctionType: ...
 
 
-def new_func_maker(func: types.FunctionType) -> _make_func: ...
+def new_func_maker(func: types.FunctionType) -> fun_maker: ...
+def get_cls_path(cls): ...

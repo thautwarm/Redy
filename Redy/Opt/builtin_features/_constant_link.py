@@ -1,57 +1,55 @@
 from .common import *
 
 
+class _InternalCell:
+    def __init__(self, value):
+        self.cell_contents = value
+
+
 class ConstDecl(ASTService):
 
-    def __hash__(self):
-        return hash('const.decl')
+    def __getitem__(self, item):
+        return item
 
-    def __eq__(self, other):
-        return isinstance(other, ConstDecl)
+    @property
+    def is_depth_first(self):
+        return False
 
-    const_symbols: typing.Dict[str, str]
-    current_ctx: CompilingTimeContext
-    const_link_table: typing.Dict[str, object]
+    const_symbols: typing.Dict[str, str] = Require("const.symbols", dict)
+    current_ctx: CompilingTimeContext = RequestContext()
 
     # noinspection PyUnresolvedReferences
-    def initialize_env(self, feature: 'Feature') -> None:
-        state = feature.state
+    def setup_env(self, feature: 'Feature') -> None:
+        pass
 
-        cons = lambda: build_local_from_closure(feature.func.__closure__, feature.func.__code__.co_freevars,
-                                                feature.func.__globals__)
-        self.current_ctx = initialize_state(state, 'context.current', cons)
-
-        self.const_symbols = initialize_state(state, 'const.symbols', dict)
-
-        self.const_link_table = initialize_state(state, 'const.link_table', dict)
-
-    def get_dispatch(self, feature: 'Feature', elem: T) -> typing.Optional[typing.Callable[['Feature', T], T]]:
-        if isinstance(elem, ast.AnnAssign) and isinstance(elem.annotation, ast.Name) and isinstance(elem.target,
-                                                                                                    ast.Name):
-            if self.current_ctx.get(elem.annotation.id) is const_token:
+    def get_dispatch(self, elem: ast.AST) -> typing.Optional[typing.Callable[[ast.AST], ast.AST]]:
+        if isinstance(elem, ast.Name) and elem.id in self.const_symbols:
+            return self.replace_symbol
+        elif isinstance(elem, ast.AnnAssign) and isinstance(elem.annotation, ast.Name) and isinstance(elem.target,
+                                                                                                      ast.Name):
+            if check_service(self.current_ctx.get(elem.annotation.id), self):
                 # noinspection PyTypeChecker
                 return self.register_const_symbols
-        elif isinstance(elem, ast.Name) and elem.id in self.const_symbols:
-            return self.replace_symbol
 
-    def register_const_symbols(self, feature: Feature, elem: ast.AST):
-        feature.func.__code__: types.CodeType
-        code = feature.func.__code__
-
-        idx = len(self.const_link_table)
+    def register_const_symbols(self, elem: ast.AST):
+        code = self.feature.func.__code__
+        symbol_id = elem.target.id
+        if symbol_id in self.const_symbols:
+            raise ValueError(
+                    "Reassign values to constant `{}` at \n{}.".format(symbol_id, get_location(elem, self.feature)))
+        idx = len(self.const_symbols)
         var_name = 'const.{}'.format(idx)
-        self.const_symbols[elem.target.id] = var_name
-        self.const_link_table[var_name] = compiling_time_eval(elem.value, self.current_ctx, code.co_filename)
-
+        self.const_symbols[var_name] = symbol_id
+        self.const_symbols[symbol_id] = var_name
+        closure = self.current_ctx.closure
+        # implement cell for possible consistency problems.
+        closure[symbol_id] = closure[var_name] = _InternalCell(compiling_time_eval(elem.value, self.current_ctx, code.co_filename))
         return []
 
-    def replace_symbol(self, feature: Feature, elem):
-        feature.func: types.FunctionType
-
+    def replace_symbol(self, elem: ast.AST):
         if isinstance(elem.ctx, ast.Store):
-            raise ValueError("Assign constant symbol `{}` at "
-                             "lineno {}, column {} in file {}".format(elem.id, elem.lineno, elem.col_offset,
-                                                                      feature.func.__code__.co_filename))
+            raise ValueError("Reassign constant symbol `{}` at \n"
+                             "{}".format(elem.id, get_location(elem, self.feature)))
 
         name = self.const_symbols[elem.id]
         elem.id = name
@@ -63,24 +61,19 @@ _const_place = opcode.opmap['LOAD_NAME'], opcode.opmap['LOAD_GLOBAL']
 
 class ConstLink(BCService):
 
-    def __hash__(self):
-        return hash('const.link')
+    @property
+    def is_depth_first(self):
+        return False
 
-    def __eq__(self, other):
-        return isinstance(other, ConstLink)
+    current_ctx: CompilingTimeContext = RequestContext()
+    const_symbols: typing.Dict[str, str] = Require("const.symbols", dict)
 
-    const_link_table: dict
+    def setup_env(self, feature: 'Feature'):
+        pass
 
-    def initialize_env(self, feature: 'Feature'):
-        state = feature.state
-        self.const_link_table = initialize_state(state, 'const.link_table', dict)
-
-    def get_dispatch(self, feature: 'Feature', bc: 'bytecode.Instr'):
-        if bc.opcode in _const_place and bc.arg in self.const_link_table:
+    def get_dispatch(self, bc: 'bytecode.Instr'):
+        if hasattr(bc, 'opcode') and bc.opcode in _const_place and bc.arg in self.const_symbols:
             return self.link_const
 
-    def link_const(self, feature: 'Feature', bc: 'bytecode.Instr'):
-        return bytecode.Instr('LOAD_CONST', self.const_link_table[bc.arg], lineno=bc.lineno)
-
-
-const_token = const = (ConstDecl(), ConstLink())
+    def link_const(self, bc: 'bytecode.Instr'):
+        yield bytecode.Instr('LOAD_CONST', self.current_ctx[self.const_symbols[bc.arg]], lineno=bc.lineno)

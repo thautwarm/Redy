@@ -2,6 +2,7 @@ import itertools
 import os
 import io
 import functools
+import typing
 import time
 from ..Typing import *
 
@@ -215,7 +216,7 @@ class Path:
             pass
         return self
 
-    def collect(self, cond=lambda _: True) -> 'List[Path]':
+    def collect(self, cond=lambda _: True) -> 'typing.Iterable[Path]':
         for each in self.list_dir(cond):
             if each.is_dir():
                 yield from each.collect(cond)
