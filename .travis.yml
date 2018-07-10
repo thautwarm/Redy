@@ -3,7 +3,7 @@ python:
   - "3.6"
   - "3.6-dev"
 install:
-  - pip install codecov coverage pytest-cov python_coveralls numpy bytecode
+  - pip install codecov coverage pytest=3.3.2 pytest-cov==2.5.1 python_coveralls numpy bytecode
 
 script:
   - python generate_tests.py
