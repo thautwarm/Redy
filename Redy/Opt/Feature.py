@@ -209,13 +209,14 @@ class Feature:
             # if no ast service, we needn't do any thing than take the code object of target function.
             code_object = target_function.__code__
 
+        original_free_vars = target_function.__code__.co_freevars
         if bc_services:
             try:
                 bc = Bytecode.from_code(code_object)
-
                 for self._current_service in bc_services:
                     bc = self.bc_transform(bc)
                 # bytecode can only be transformed to bytecode.
+                bc.freevars = [each for each in original_free_vars]
                 code_object = bc.to_code()
 
             except NameError:

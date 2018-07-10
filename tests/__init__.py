@@ -5,7 +5,7 @@ def test_all():
     from tests.Magic import Pattern, Classic
     from tests.ADT import Core
     from tests.Opt import ConstExpr
-
+    from tests import test_constexpr, test_goto, test_macro
 
 
 test_all()
