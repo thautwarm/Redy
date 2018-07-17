@@ -13,12 +13,12 @@ class Macro(ASTService):
         self.macro_namespace = macros if macros else {}
 
     def expr(self, func):
-        mod: ast.Module = get_ast(func.__code__)
+        mod: ast.Module = ast.parse(func) if isinstance(func, str) else  get_ast(func.__code__)
         self._define_expr_macro(mod.body[0])
         return func
 
     def stmt(self, func):
-        mod: ast.Module = get_ast(func.__code__)
+        mod: ast.Module = ast.parse(func) if isinstance(func, str) else get_ast(func.__code__)
         self._define_stmt_macro(mod.body[0])
         return func
 

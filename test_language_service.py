@@ -63,3 +63,15 @@ macro_example2()
 
 # dis(loop1)
 # loop1()
+
+
+macro.stmt('def m(): print("string macro")')
+
+
+#
+@feature(macro)
+def test_string_macro():
+    m()
+
+
+test_string_macro()
