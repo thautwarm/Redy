@@ -178,7 +178,7 @@ class Path:
                 - File.py
                 - File.pyi
                 - File.pyx
-            Dir1.list_dir(lambda path: '.py' in py)
+            Dir1.list_dir(lambda path: '.py' in path)
             => [<Path object of File1.py>]
 
             Dir1.list_dir(lambda path: print(path))
