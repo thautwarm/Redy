@@ -6,33 +6,26 @@ import typing
 import time
 from ..Typing import *
 
-try:
-    from chardet import detect as _encoding_detect
-
-
-    def auto_open_file(file, mode):
-        with open(file, 'rb') as sample:
-            encoding = _encoding_detect(sample.read(1024))['encoding']
-        return open(file, mode, encoding=encoding)
-except:
-    import warnings
-
-    warnings.warn('No module chardet found. `auto_open_file` function could be inefficient.')
-    _encodings = ['utf8', 'gb18030', 'gbk', 'latin-1']
-
-
-    def auto_open_file(file, mode):
-        for each in _encodings:
-            try:
-                stream = open(file, mode, encoding=each)
-                stream.read(1)
-                stream.seek(0)
-                return stream
-            except UnicodeError:
-                continue
-        raise UnicodeError
-
 __all__ = ['Path']
+
+_encodings = ['utf8', 'gb18030', 'gbk', 'latin-1']
+
+
+def default_auto_open(file, mode):
+    for each in _encodings:
+        try:
+            stream = open(file, 'r', encoding=each)
+            stream.read(1)
+            stream.seek(0)
+            if mode == 'r':
+                return stream
+            stream.close()
+            return open(file, mode, encoding=each)
+
+        except UnicodeError:
+            continue
+
+    raise UnicodeError
 
 
 def path_split(components: str) -> Tuple[str, ...]:
@@ -59,6 +52,18 @@ def path_join(components: Iterable[str]) -> str:
 
     # noinspection PyTypeChecker
     return functools.reduce(os.path.join, components, path_head)
+
+
+def _convert_to_path(it):
+    if isinstance(it, str):
+        return Path(it)
+    return it
+
+
+def _convert_to_str(it):
+    if isinstance(it, str):
+        return it
+    return Path(it)
 
 
 class Path:
@@ -111,23 +116,23 @@ class Path:
         yield from self._path
 
     def __eq__(self, other: Union[str, 'Path']):
-        return str(self) == str(other if isinstance(other, Path) else Path(other))
+        return str(self) == _convert_to_str(other)
 
     def exists(self) -> bool:
-        return os.path.exists(self.__str__())
+        return os.path.exists(str(self))
 
     def is_dir(self) -> bool:
         return os.path.isdir(str(self))
 
-    def move_to(self, path: Union[str, 'Path'], exception_handler: Optional[Callable[[Exception], None]] = None):
-        if isinstance(path, str):
-            path = Path(path)
+    def move_to(self, destination: Union[str, 'Path'], exception_handler: Optional[Callable[[Exception], None]] = None):
+        if isinstance(destination, str):
+            destination = Path(destination)
         try:
             relative = self.relative()
             if self.is_dir():
-                path = path.into(relative)
-                if not path.exists():
-                    path.mkdir()
+                destination = destination.into(relative)
+                if not destination.exists():
+                    destination.mkdir()
 
                 def _move_to(from_: Path, to_: Path):
                     for each in from_.list_dir():
@@ -141,9 +146,9 @@ class Path:
                             with each.open('rb') as read_item, to_.into(relative).open('wb') as write_item:
                                 write_item.write(read_item.read())
 
-                _move_to(self, path)
+                _move_to(self, destination)
             else:
-                with path.into(relative).open('wb') as write_item, self.open('rb') as read_item:
+                with destination.into(relative).open('wb') as write_item, self.open('rb') as read_item:
                     write_item.write(read_item.read())
         except Exception as e:
             if exception_handler is None:
@@ -151,17 +156,74 @@ class Path:
             exception_handler(e)
 
     def list_dir(self, filter_fn=None) -> 'Tuple[Path, ...]':
+        """
+        * the `self` Path object is assumed to be a directory
+
+        :param filter_fn:
+            a `None` object or
+            a predicative function `str -> bool` which will be applied on the
+            filename/directory in `self` directory.
+
+        :return:
+            a tuple of Path objects
+            each of which represents a file/directory
+            in `self` directory.
+
+            If the filter_fn is not None,
+            each item in return tuple whose filename/directory name
+            doesn't match the `filter_fn` will filtered.
+
+        e.g:
+            - Dir1
+                - File.py
+                - File.pyi
+                - File.pyx
+            Dir1.list_dir(lambda path: '.py' in py)
+            => [<Path object of File1.py>]
+
+            Dir1.list_dir(lambda path: print(path))
+            IO:
+              File.py
+              File.pyi
+              File.pyx
+            => []
+        """
+
         path = str(self)
-        items = map(lambda _: path_join((path, _)), os.listdir(path))
+        items = os.listdir(path)
         if filter_fn is not None:
             items = filter(filter_fn, items)
-        return tuple(map(Path, items))
+
+        return tuple(Path(path_join((path, item))) for item in items)
 
     def abs(self) -> str:
+        """
+        :return: absolute path of Path object
+        """
         return str(self)
 
-    def relative(self) -> str:
-        return os.path.split(str(self))[1]
+    def relative(self, start: typing.Optional[typing.Union['Path', str]] = None) -> str:
+        """
+        :param start: an object of NoneType or Path or str.
+        :return: a string
+            If `start` is None:
+                returns the relative path of current Path object from its own directory.
+            Else:
+                returns the relative path of current Path object from the `start` path.
+        e.g
+        - Dir1
+            - Dir2
+                - File1
+                - File2
+            - Dir3
+                - File3
+            Path(<path of File1>).relative() => "<filename of File1>"
+            Path(<path of Dir2>).relative() => "<directory name of Dir1>"
+            Path(<path of File3>).relative(<path of File1>) => "../Dir2/<filename of File1>"
+        """
+        if start is None:
+            return os.path.split(str(self))[1]
+        return os.path.relpath(str(self), start)
 
     def parent(self) -> 'Path':
         return Path(*self._path[:-1], no_check=True)
@@ -171,26 +233,33 @@ class Path:
 
     def __getitem__(self, item: Union[Callable[[str], bool], int]) -> Optional[str]:
         if callable(item):
-            try:
-                return next(filter(item, self._path))
-            except StopIteration:
-                return None
+            return next(filter(item, self._path), None)
 
         return self._path[item]
 
     def __str__(self):
         return path_join(self._path)
 
-    def open(self, mode, encoding='utf8'):
+    def open(self, mode, encoding='auto'):
         """
-
         :param mode: the same as the argument `mode` of `builtins.open`
-        :param encoding: similar to the argument `encoding` of `builtins.open`.
-                         You can use `encoding='auto'` to automatically detect the encoding.
+        :param encoding: similar to the argument `encoding` of `builtins.open` which is compatible to io.open.
+                         - `encoding='auto'` to automatically detect the encoding.n
+                         - `encoding=<function>`
+                            If you want to apply custom encoding detection method, you could pass
+                            an encoding detecting function `(filename: str) -> (encoding: str)` here
+                            which receives the filename and returns encoding of the file.
         :return: the same as the return of ``builtins.open`.
         """
+        if 'b' in mode or 'w' in mode:
+            return io.open(str(self), mode)
+
+        if callable(encoding):
+            encoding = encoding(str(self))
+
         if encoding == 'auto':
-            return auto_open_file(str(self), mode)
+            return default_auto_open(str(self), mode)
+
         return io.open(str(self), mode, encoding=encoding)
 
     def delete(self):
@@ -216,7 +285,7 @@ class Path:
             pass
         return self
 
-    def collect(self, cond=lambda _: True) -> 'typing.Iterable[Path]':
+    def collect(self, cond=None) -> 'typing.Iterable[Path]':
         for each in self.list_dir(cond):
             if each.is_dir():
                 yield from each.collect(cond)
