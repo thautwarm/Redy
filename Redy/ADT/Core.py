@@ -23,7 +23,7 @@ def data(cls_def: type):
 
     >>> assert isinstance(S.a, S)
     >>> assert isinstance(S.b('2'), S)
-    >>> assert S.b('2').__str__() == '2("2")'
+    >>> assert S.b('2').__str__() == '2(\'2\')'
     >>> assert S.c(1, 2).__str__() == 'c(1, 2)'
 
     >>> assert S.c(1, 2)[:] == (S.c, 1, 2)  # here `ConsInd` works!

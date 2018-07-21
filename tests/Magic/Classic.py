@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Magic_Classic(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2170699674952(self):
+    def test_2102660007240(self):
         from Redy.Magic.Classic import template
         import operator
         class Point:
