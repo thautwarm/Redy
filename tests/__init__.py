@@ -1,5 +1,6 @@
 import unittest
-
+from tests.test_constexpr import *
+from tests.test_goto import *
 
 class TestAll(unittest.TestCase):
     def test_all(self):
@@ -11,6 +12,3 @@ class TestAll(unittest.TestCase):
         from tests.Opt import ConstExpr
         from tests import test_macro
 
-
-from tests.test_constexpr import *
-from tests.test_goto import *

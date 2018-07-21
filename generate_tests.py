@@ -54,7 +54,6 @@ def generate_doc_for(module: Mapping[str, object]):
     root = path
 
     while 'README.md' not in root.parent().list_dir():
-        print(root.parent().list_dir())
         root = root.parent()
 
     directory = root.parent().__str__()
