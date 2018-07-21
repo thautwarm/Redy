@@ -12,7 +12,7 @@ def data(cls_def: type):
     """
     >>> from Redy.ADT.Core import data
     >>> from Redy.Magic.Classic import cast
-    >>> from Redy.ADT.traits import *
+    >>> from Redy.ADT.traits import ConsInd, Discrete
     >>> @data
     >>> class S(ConsInd):  # ConsInd class makes it available to index from this data as from a tuple.
     >>>    a: '1'
@@ -171,6 +171,7 @@ class P:
 def match(mode_lst: list, obj: 'object that has __destruct__ method'):
     """
     >>> from Redy.ADT.Core import match, data, P
+    >>> from Redy.ADT.traits import ConsInd, Discrete
     >>> @data
     >>> class List(ConsInd, Discrete):
     >>>     # ConsInd(index following constructing)

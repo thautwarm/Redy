@@ -79,7 +79,7 @@ def execute(func: types.FunctionType):
     >>> from Redy.Magic.Classic import execute
     >>> x = 1
     >>> @execute
-    >>> def f(x) -> int:
+    >>> def f(x = x) -> int:
     >>>     return x + 1
     >>> assert f is 2
     """

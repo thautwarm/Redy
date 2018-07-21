@@ -1,6 +1,6 @@
 import threading
 from ..Typing import *
-from .traits import Atomic
+from .traits import Sync
 from .Delegate import Delegate
 
 __all__ = ['Accompany', 'ThreadExit']
@@ -8,11 +8,10 @@ __all__ = ['Accompany', 'ThreadExit']
 _cancel_sign = object()
 
 
-class Accompany(Atomic, Generic[T, TR, TE]):
+class Accompany(Sync, Generic[T, TR, TE]):
     """
 
     >>> from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
-    >>> from Redy.Typing import *
     >>> from Redy.Tools import Path
     >>> import time
     >>> delta = 0.2
@@ -162,40 +161,40 @@ class Accompany(Atomic, Generic[T, TR, TE]):
         return self._product
 
     @property
-    @Atomic.with_lock
+    @Sync.with_lock
     def descriptor_mapping(self):
         return self._descriptor_mapping
 
     @descriptor_mapping.setter
-    @Atomic.with_lock
+    @Sync.with_lock
     def descriptor_mapping(self, value: Func[TR, TE]):
         self._descriptor_mapping = value
 
     @property
-    @Atomic.with_lock
+    @Sync.with_lock
     def events(self):
         return self._events
 
     @events.setter
-    @Atomic.with_lock
+    @Sync.with_lock
     def events(self, value: Dict[TE, Delegate]):
         self._events = value
 
     @property
-    @Atomic.with_lock
+    @Sync.with_lock
     def running(self):
         return self._running
 
-    @Atomic.with_lock
+    @Sync.with_lock
     def _mut_running(self, value: bool):
         self._running = value
 
     @property
-    @Atomic.with_lock
+    @Sync.with_lock
     def finished(self):
         return self._finished
 
-    @Atomic.with_lock
+    @Sync.with_lock
     def _mut_finished(self, value: bool):
         self._finished = value
 

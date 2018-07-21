@@ -1,20 +1,22 @@
 from Redy.Typing import *
 
-
-from Redy.Async.Delegate import Delegate
-action = lambda task, product, globals: print(task.__name__)
-delegate = Delegate(action)
-def action2(task, product, globals):
-    print(product)
-delegate.insert(action2, Delegate.Where.after(lambda _: False))
-delegate.insert(action, Delegate.Where.before(lambda _: _.__name__ == 'action2'))
-delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
-delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
-fake_task = lambda : None
-delegate(fake_task, "out", None)
-delegate: Delegate
-delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
-delegate: Delegate
-delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
-delegate: Delegate
-delegate.insert(lambda task, product, ctx: print(product), where=Delegate.Where.after(lambda action: action.__name__ == 'myfunc'))
+import unittest
+class Test_Redy_Async_Delegate(unittest.TestCase):
+    def test_1720139654232(self):
+        from Redy.Async.Delegate import Delegate
+        action = lambda task, product, globals: print(task.__name__)
+        delegate = Delegate(action)
+        def action2(task, product, globals):
+            print(product)
+        delegate.insert(action2, Delegate.Where.after(lambda _: False))
+        delegate.insert(action, Delegate.Where.before(lambda _: _.__name__ == 'action2'))
+        delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
+        delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
+        fake_task = lambda : None
+        delegate(fake_task, "out", None)
+        delegate: Delegate
+        delegate += (lambda task, product, ctx: print("current product: {}".format(product)))
+        delegate: Delegate
+        delegate.add(lambda task, product, ctx: print("current product: {}".format(product)))
+        delegate: Delegate
+        delegate.insert(lambda task, product, ctx: print(product), where=Delegate.Where.after(lambda action: action.__name__ == 'myfunc'))

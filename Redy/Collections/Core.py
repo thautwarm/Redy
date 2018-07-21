@@ -21,7 +21,7 @@ class Monad(Iterable, Generic[T, TR]):
     """
     Monad: mapping among types that preserves identity morphisms and composition of morphisms.
     Monad[A, B]: a type of mapping A to B.
-    >>> from Redy.Collections.Core import *
+    >>> from Redy.Collections.Core import Monad
     >>> def i2f(x: int) -> float: return x * 1.0
     >>> def f2s(x: float) -> str: return str(x)
     >>> def s2f(x: str) -> float: return float(x)

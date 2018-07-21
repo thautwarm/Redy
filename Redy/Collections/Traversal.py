@@ -6,7 +6,7 @@ from collections import defaultdict
 __all__ = ['map_by', 'reduce_by', 'fold_by', 'sum_from', 'each_do', 'filter_by', 'flatten_to', 'flatten_if', 'chunk_by',
            'chunk', 'group', 'group_by']
 
-ActualIterable = Union[Iterable, Iterable, Sequence, Collection]
+ActualIterable = Iterable
 
 
 def map_by(fn: Callable[[T1], T2]) -> Callable[[ActualIterable[T1]], Iterable[T2]]:

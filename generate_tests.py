@@ -10,6 +10,7 @@ from Redy.Async import Accompany, Delegate
 from Redy.Magic import Pattern, Classic
 from Redy.ADT import Core as GADTCore
 from Redy.Opt import ConstExpr
+import textwrap
 
 pattern_clear = re.compile('\s+\>\>\> ')
 accept_private_doc = ('__add__', '__iadd__', '__sub__', '__isub__', '__mul__', '__imul__',
@@ -80,8 +81,16 @@ def generate_doc_for(module: Mapping[str, object]):
             codes.append
         ]
     with open(str(path), 'w') as f:
-        f.write("from Redy.Typing import *\n\n\n")
-        f.write('\n\n'.join(codes))
+        codes = textwrap.indent('\n\n'.join(codes), ' ' * 8)
+        f.write(
+                "from Redy.Typing import *\n\n"
+                "import unittest\n"
+                f"class Test_{module.__name__.replace('.', '_')}(unittest.TestCase):\n"
+                f"    def test_{id(module)}(self):\n"
+                f"{codes}"
+        )
+
+
 
 
 if __name__ == '__main__':
