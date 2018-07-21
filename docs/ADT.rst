@@ -60,7 +60,7 @@ Preview
     @data
     class List(traits.ConsInd, traits.Dense, traits.Im):
         Nil : ...
-        Cons: lambda head, tail: f'{head}, {tail}'
+        Cons: lambda head, tail: ...
 
         def __lshift__(self, value):
             return List.Cons(value, self)
@@ -74,13 +74,18 @@ Output:
 .. code :: shell
 
 
-    (Nil)
+    Nil
     True
-    (3, (2, (1, (Nil))))
+    Cons(3, Cons(2, Cons(1, Nil)))
 
 
-You might notice that :code:`traits` here are unfamiliar and kind of strange, however it's significant to design
-datatypes without detailed features and describe them.
+Traits
+--------------
+
+You might notice that :code:`traits` here are unfamiliar and kind of strange, however it's significant for designing datatypes with detailed features and descriptions.
+
+
+- `ConsInd`
 
 For example, :code:`traits.ConsInd` means you can access any component of instances in the way they're constructed.
 
@@ -93,7 +98,9 @@ For example, :code:`traits.ConsInd` means you can access any component of instan
     assert lst[2] == List.Cons(2, List.Nil)  # pass
 
 
-And trait :code:`Im` is short for "Immutable", just as this trait suggested,
+- `Im`
+
+Trait :code:`Im` is short for "Immutable", just as this trait suggested,
 the immutable data could not be updated in place,
 on the other hand, immutable data is hashable and could be used as the key of hashdict.
 
@@ -105,9 +112,43 @@ on the other hand, immutable data is hashable and could be used as the key of ha
         Student: lambda name, sex, age, sno, class_id, grade: ...
         Teacher: lambda name, sex, sno: ...
 
+    student1 = User.Student("Sam", 1, 18, 0x42, 0x99, 2333)
+    teacher1 = User.Teacher("Bili", 1, 0x565656)
 
-    student = User.Student("Sam", 1, 18, 0x42, 0x99, 2333)
-    teacher = User.Teacher("Bili", 1, 0x565656)
+    payments = {student1: 20, teacher1: 50}
+
+
+- `Eq`
+
+indicates that a instance of the datatype is able to applied equivalence comparisons with other objects.
+
+You should implement an `__eq__(self, other)` method for yourself.
+
+- `Hash`
+
+indicates that a instance of the datatype is hashable and you should implement `__hash__(self)` for yourself.
+
+- `Ord`
+
+indicates the instance is ordered and obviously an `Ord` is an `Eq`. You should implement an `__eq__` method, and either an `__lt__` or an `__gt__`.
+
+- `Dense`
+
+a `Dense` object is also an `Eq`, which implements a default `__eq__` method. A `Dense` object equals to some other if and only if the other is also a `Dense`
+, and the components that respectively construct them sequentially equal the other side.
+
+An example of `Dense` object is an element of any given set in mathematics which could be distinguished from other elements, and once its components
+mutate slightly there could be a brand-new `Dense` object.
+
+
+- `Discrete`
+
+a `Discrete` object is both an `Eq` and an `Im`. A `Discrete` object equals to some other if and only if they are just the same object.
+
+If you construct two `Discrete` objects with the same components, actually they're the same one.
+
+An example of `Discrete` object is a natural number.
+
 
 
 

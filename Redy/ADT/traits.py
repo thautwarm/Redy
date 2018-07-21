@@ -6,7 +6,7 @@ from ..Magic.Classic import discrete_cache
 
 class IData:
     __structure__: object
-    __inst_str__: object  # object(s) for showing.
+    __sig_str__: object  # object(s) for showing.
 
     def __destruct__(self):
         raise NotImplemented
