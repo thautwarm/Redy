@@ -85,7 +85,7 @@ Traits
 You might notice that :code:`traits` here are unfamiliar and kind of strange, however it's significant for designing datatypes with detailed features and descriptions.
 
 
-- `ConsInd`
+- :code:`ConsInd` 
 
 For example, :code:`traits.ConsInd` means you can access any component of instances in the way they're constructed.
 
@@ -98,7 +98,7 @@ For example, :code:`traits.ConsInd` means you can access any component of instan
     assert lst[2] == List.Cons(2, List.Nil)  # pass
 
 
-- `Im`
+- :code:`Im` 
 
 Trait :code:`Im` is short for "Immutable", just as this trait suggested,
 the immutable data could not be updated in place,
@@ -118,37 +118,36 @@ on the other hand, immutable data is hashable and could be used as the key of ha
     payments = {student1: 20, teacher1: 50}
 
 
-- `Eq`
+- :code:`Eq` 
 
 indicates that a instance of the datatype is able to applied equivalence comparisons with other objects.
 
-You should implement an `__eq__(self, other)` method for yourself.
+You should implement an :code:`__eq__(self, other)`  method for yourself.
 
-- `Hash`
+- :code:`Hash` 
 
-indicates that a instance of the datatype is hashable and you should implement `__hash__(self)` for yourself.
+indicates that a instance of the datatype is hashable and you should implement :code:`__hash__(self)`  for yourself.
 
-- `Ord`
+- :code:`Ord` 
 
-indicates the instance is ordered and obviously an `Ord` is an `Eq`. You should implement an `__eq__` method, and either an `__lt__` or an `__gt__`.
+indicates the instance is ordered and obviously an :code:`Ord`  is an :code:`Eq` . You should implement an :code:`__eq__`  method, and either an :code:`__lt__`  or an :code:`__gt__` .
 
-- `Dense`
+- :code:`Dense` 
 
-a `Dense` object is also an `Eq`, which implements a default `__eq__` method. A `Dense` object equals to some other if and only if the other is also a `Dense`
+a :code:`Dense`  object is also an :code:`Eq` , which implements a default :code:`__eq__`  method. A :code:`Dense`  object equals to some other if and only if the other is also a :code:`Dense` 
 , and the components that respectively construct them sequentially equal the other side.
 
-An example of `Dense` object is an element of any given set in mathematics which could be distinguished from other elements, and once its components
-mutate slightly there could be a brand-new `Dense` object.
+An example of :code:`Dense`  object is an element of any given set in mathematics which could be distinguished from other elements, and once its components
+mutate slightly there could be a brand-new :code:`Dense`  object.
 
 
-- `Discrete`
+- :code:`Discrete` 
 
-a `Discrete` object is both an `Eq` and an `Im`. A `Discrete` object equals to some other if and only if they are just the same object.
+a :code:`Discrete`  object is both an :code:`Eq`  and an :code:`Im` . A :code:`Discrete`  object equals to some other if and only if they are just the same object.
 
-If you construct two `Discrete` objects with the same components, actually they're the same one.
+If you construct two :code:`Discrete`  objects with the same components, actually they're the same one.
 
-An example of `Discrete` object is a natural number.
-
+An example of :code:`Discrete`  object is a natural number.
 
 
 
