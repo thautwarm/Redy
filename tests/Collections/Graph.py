@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Collections_Graph(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2427465464552(self):
+    def test_2170699676392(self):
         from Redy.Collections.Graph import Node
         a = Node(1)
         b = Node(2)

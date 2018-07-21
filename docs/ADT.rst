@@ -82,8 +82,7 @@ Output:
 You might notice that :code:`traits` here are unfamiliar and kind of strange, however it's significant to design
 datatypes without detailed features and describe them.
 
-For example, :code:`traits.ConsInd`, which is short for "constructing indexing"
-and enables accessing patterns of data structures by indexing.
+For example, :code:`traits.ConsInd` means you can access any component of instances in the way they're constructed.
 
 .. code :: python
 
@@ -97,5 +96,20 @@ and enables accessing patterns of data structures by indexing.
 And trait :code:`Im` is short for "Immutable", just as this trait suggested,
 the immutable data could not be updated in place,
 on the other hand, immutable data is hashable and could be used as the key of hashdict.
+
+.. code :: python
+
+
+    @data
+    class User(traits.Im):
+        Student: lambda name, sex, age, sno, class_id, grade: ...
+        Teacher: lambda name, sex, sno: ...
+
+
+    student = User.Student("Sam", 1, 18, 0x42, 0x99, 2333)
+    teacher = User.Teacher("Bili", 1, 0x565656)
+
+
+
 
 

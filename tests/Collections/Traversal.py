@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Collections_Traversal(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2427447905320(self):
+    def test_2170681920552(self):
         from Redy.Collections import Traversal, Flow
         def double(x: int) -> int: return x * 2
         lst: Iterable[int] = [1, 2, 3]

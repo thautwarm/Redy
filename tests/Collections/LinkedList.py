@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Collections_LinkedList(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2427484080472(self):
+    def test_2170718292312(self):
         from Redy.Collections.LinkedList import LinkedList
         x = LinkedList(1)
         x.next = [1, 2, 3]
@@ -31,6 +31,8 @@ class Test_Redy_Collections_LinkedList(unittest.TestCase):
         a1 = LinkedList(1)
         a2 = a1.cons(2)
         a3 = a2.cons(3)
+        list(a3) == [3, 2, 1]
+        assert a3.count() == 3
 
         from Redy.Collections.LinkedList import zero_list, ZeroList
         print(zero_list)

@@ -4,6 +4,7 @@ from ..Magic.Classic import discrete_cache, singleton
 from ..Tools.TypeInterface import BuiltinMethod
 from .traits import Discrete
 from ..Opt.utils import new_func_maker
+import warnings
 
 __all__ = ['data', 'P', 'PatternList', 'match', 'RDT']
 
@@ -22,7 +23,8 @@ def data(cls_def: type):
 
     >>> assert isinstance(S.a, S)
     >>> assert isinstance(S.b('2'), S)
-    >>> assert S.b('2').__str__() == '(2)'
+    >>> assert S.b('2').__str__() == '2("2")'
+    >>> assert S.c(1, 2).__str__() == 'c(1, 2)'
 
     >>> assert S.c(1, 2)[:] == (S.c, 1, 2)  # here `ConsInd` works!
 
@@ -53,13 +55,27 @@ def data(cls_def: type):
 
     new_cls_def = type(cls_def.__name__, cls_def.__bases__, __dict__)
 
-    new_cls_def.__slots__ = ['__inst_str__', '__structure__']
+    new_cls_def.__slots__ = ['__sig_str__', '__structure__']
 
     if not hasattr(new_cls_def, '__repr__') or isinstance(new_cls_def.__repr__, BuiltinMethod):
         def __repr__(self):
-            return f'({self.__inst_str__})'
+            s = self.__structure__
+            if not isinstance(s, tuple):
+                return self.__sig_str__
+            return f'{self.__sig_str__}({", ".join(tuple(map(repr, self.__structure__[1:])))})'
 
         new_cls_def.__repr__ = __repr__
+
+    @property
+    def __inst_str__(self):
+        return self.__sig_str__
+
+    @__inst_str__.setter
+    def __inst_str__(self, value):
+        warnings.warn('`__inst_str__` of ADT will not removed after Redy 0.3!')
+        self.__sig_str__ = value
+
+    new_cls_def.__inst_str__ = __inst_str__
 
     def __destruct__(self):
         return self.__structure__
@@ -72,7 +88,7 @@ def data(cls_def: type):
 
     def make_type(str_value: object, default: str):
         entity = new_cls_def()
-        entity.__inst_str__ = default if str_value is ... else str_value
+        entity.__sig_str__ = default if str_value is ... else str_value
         entity.__structure__ = None
 
         return entity
@@ -87,8 +103,8 @@ def data(cls_def: type):
                 code: types.CodeType = annotation.func.__code__
                 impl = (f"def call({_args}):\n"
                         f"    entity = new_cls_def()\n"
-                        f"    __structure__, __inst_str__ = annotation.func({_args})\n"
-                        f"    entity.__inst_str__ = {each.__repr__()} if __inst_str__  is ... else __inst_str__\n"
+                        f"    __structure__, __sig_str__ = annotation.func({_args})\n"
+                        f"    entity.__sig_str__ = {repr(each)} if __sig_str__  is ... else __sig_str__\n"
                         f"    entity.__structure__ = cons, *__structure__\n"
                         f"    return entity\n")
             else:
@@ -97,18 +113,18 @@ def data(cls_def: type):
                 impl = (f"def call({_args}):\n"
                         f"    entity = new_cls_def()\n"
                         f"    str_value = annotation({_args})\n"
-                        f"    entity.__inst_str__ = {each.__repr__()} if str_value is ... else str_value\n"
+                        f"    entity.__sig_str__ = {repr(each)} if str_value is ... else str_value\n"
                         f"    entity.__structure__ = cons, {_args}\n"
                         f"    return entity")
             if spec.defaults or spec.kwonlyargs or spec.varkw:
-                raise TypeError('A ADT constructor must be a lambda without default args or keyword args.')
+                raise TypeError('An ADT constructor must be a lambda without default args or keyword args.')
 
             scope = {'annotation': annotation, 'new_cls_def': new_cls_def}
             exec(compile(f"{impl}", "Redy.ADT.Core.py", "exec", 0, False), scope)
             _singleton_inst = scope['call']
 
             maker = new_func_maker(_singleton_inst)
-            _singleton_inst = maker(filename=code.co_filename, firstlineno=code.co_firstlineno, lnotab=code.co_lnotab)
+            _singleton_inst = maker(filename=code.co_filename, firstlineno=code.co_firstlineno, lnotab=code.co_lnotab, name=each)
 
             singleton_inst = constructor_descriptor(_singleton_inst)
             scope['cons'] = singleton_inst
