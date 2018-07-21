@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Tools_Version(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2102659961224(self):
+    def test_1802770043272(self):
         from Redy.Tools.Version import Version
         a = Version('1.0.0.2')
         a.increment(version_number_idx=2, increment=1)

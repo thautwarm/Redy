@@ -150,6 +150,12 @@ If you construct two :code:`Discrete`  objects with the same components, actuall
 An example of :code:`Discrete`  object is a natural number.
 
 
+Enum
+------------
+
+
+For ADTs are tagged unions, some features in ML languages could be also effective here.
+
 
 
 

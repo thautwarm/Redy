@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_ADT_Core(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2102678710776(self):
+    def test_1802788661752(self):
         from Redy.ADT.Core import data
         from Redy.Magic.Classic import cast
         from Redy.ADT.traits import ConsInd, Discrete
@@ -15,7 +15,7 @@ class Test_Redy_ADT_Core(unittest.TestCase):
            c: lambda x, y : ...
         assert isinstance(S.a, S)
         assert isinstance(S.b('2'), S)
-        assert S.b('2').__str__() == '2('2')'
+        assert S.b('2').__str__() == "2('2')"
         assert S.c(1, 2).__str__() == 'c(1, 2)'
         assert S.c(1, 2)[:] == (S.c, 1, 2)  # here `ConsInd` works!
         @data

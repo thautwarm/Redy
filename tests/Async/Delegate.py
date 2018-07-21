@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Async_Delegate(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2102678668536(self):
+    def test_1802788627704(self):
         from Redy.Async.Delegate import Delegate
         action = lambda task, product, globals: print(task.__name__)
         delegate = Delegate(action)

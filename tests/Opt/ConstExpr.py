@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Opt_ConstExpr(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_2102679546360(self):
+    def test_1802789562872(self):
         from Redy.Opt.ConstExpr import constexpr, const, optimize, macro
         import dis
         a = 1; b = ""; c = object()
