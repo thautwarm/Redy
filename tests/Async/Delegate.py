@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Async_Delegate(unittest.TestCase):
-    def test_1720139654232(self):
+    @pytest.fixture(autouse=True)
+    def test_2427484190104(self):
         from Redy.Async.Delegate import Delegate
         action = lambda task, product, globals: print(task.__name__)
         delegate = Delegate(action)

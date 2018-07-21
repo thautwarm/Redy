@@ -85,7 +85,10 @@ def generate_doc_for(module: Mapping[str, object]):
         f.write(
                 "from Redy.Typing import *\n\n"
                 "import unittest\n"
+                "import pytest\n"
+                # f"@pytest.mark.usefixtures({repr(module.__name__)})\n"
                 f"class Test_{module.__name__.replace('.', '_')}(unittest.TestCase):\n"
+                "    @pytest.fixture(autouse=True)\n"
                 f"    def test_{id(module)}(self):\n"
                 f"{codes}"
         )

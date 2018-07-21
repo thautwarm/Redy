@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Magic_Classic(unittest.TestCase):
-    def test_1722268480840(self):
+    @pytest.fixture(autouse=True)
+    def test_2427465463112(self):
         from Redy.Magic.Classic import template
         import operator
         class Point:

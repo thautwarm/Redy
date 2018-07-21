@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_ADT_Core(unittest.TestCase):
-    def test_1720139708760(self):
+    @pytest.fixture(autouse=True)
+    def test_2427484236440(self):
         from Redy.ADT.Core import data
         from Redy.Magic.Classic import cast
         from Redy.ADT.traits import ConsInd, Discrete

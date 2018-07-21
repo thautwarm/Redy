@@ -12,5 +12,5 @@ from tests.Tools.TypeInterface import *
 from tests.Magic.Pattern import *
 from tests.Magic.Classic import *
 from tests.ADT.Core import *
-from tests.Opt.ConstExpr import *
+# from tests.Opt.ConstExpr import *
 from tests.test_macro import *

@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Magic_Pattern(unittest.TestCase):
-    def test_1720139707800(self):
+    @pytest.fixture(autouse=True)
+    def test_2427484235480(self):
         from Redy.Magic.Pattern import Pattern
         @Pattern
         def f(x):

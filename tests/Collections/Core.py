@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Collections_Core(unittest.TestCase):
-    def test_1722268374504(self):
+    @pytest.fixture(autouse=True)
+    def test_2427465356856(self):
         from Redy.Collections.Core import Monad
         def i2f(x: int) -> float: return x * 1.0
         def f2s(x: float) -> str: return str(x)

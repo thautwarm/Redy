@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Tools_TypeInterface(unittest.TestCase):
-    def test_1722268480200(self):
+    @pytest.fixture(autouse=True)
+    def test_2427465462472(self):
 
 
         from Redy.Tools.TypeInterface import Module

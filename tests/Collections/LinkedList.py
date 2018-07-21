@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Collections_LinkedList(unittest.TestCase):
-    def test_1720139549016(self):
+    @pytest.fixture(autouse=True)
+    def test_2427484080472(self):
         from Redy.Collections.LinkedList import LinkedList
         x = LinkedList(1)
         x.next = [1, 2, 3]
@@ -26,6 +28,9 @@ class Test_Redy_Collections_LinkedList(unittest.TestCase):
         z = LinkedList(2)
         z.next = x
         print(z)
+        a1 = LinkedList(1)
+        a2 = a1.cons(2)
+        a3 = a2.cons(3)
 
         from Redy.Collections.LinkedList import zero_list, ZeroList
         print(zero_list)
@@ -39,7 +44,7 @@ class Test_Redy_Collections_LinkedList(unittest.TestCase):
             raise e
         try:
             zero_list.any = 1
-        except ValueError:
+        except AttributeError:
             print('expected error')
         except Exception as e:
             raise e
@@ -59,7 +64,7 @@ class Test_Redy_Collections_LinkedList(unittest.TestCase):
             raise e
         try:
             zero_list.any = 1
-        except ValueError:
+        except AttributeError:
             print('expected error')
         except Exception as e:
             raise e

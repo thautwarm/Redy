@@ -37,16 +37,20 @@ class LinkedList(Iterable[T]):
     >>> z = LinkedList(2)
     >>> z.next = x
     >>> print(z)
+    >>> a1 = LinkedList(1)
+    >>> a2 = a1.cons(2)
+    >>> a3 = a2.cons(3)
+    >>> list(a3) == [3, 2, 1]
+    >>> assert a3.count() == 3
 
     """
+    _stop = object()
     __slots__ = ['_next', 'value']
 
     def __init__(self, value: T, next: 'Optional[Iterable[T]]' = None):
         self.value = value
 
-        if isinstance(next, Iterator):
-            self._next = next
-        elif isinstance(next, Iterable):
+        if isinstance(next, Iterable):
             self._next = iter(next)
         elif next is None:
             self._next = zero_list
@@ -63,13 +67,29 @@ class LinkedList(Iterable[T]):
             yield ptr.value
             ptr = ptr.next
 
+    def count(self):
+        n = 0
+        it = iter(self)
+        try:
+            while next(it):
+                n += 1
+        except StopIteration:
+            return n
+
+    def cons(self, value: T):
+        return LinkedList(value, self)
+
     @property
     def next(self) -> 'Optional[LinkedList[T]]':
-        if not self._next:
+        _next = self._next
+        if not _next:
             return zero_list
 
-        if not isinstance(self._next, LinkedList):
-            self._next = LinkedList(next(self._next), self._next)
+        if not isinstance(_next, LinkedList):
+            _stop = self._stop
+            elem = next(_next, _stop)
+            self._next = LinkedList(elem, _next) if elem is not _stop else zero_list
+
         return self._next
 
     @next.setter
@@ -78,8 +98,6 @@ class LinkedList(Iterable[T]):
             self._next = None
             return
 
-        if not isinstance(seq, Iterable):
-            raise TypeError
         elif isinstance(seq, LinkedList):
             self._next = seq
         else:
@@ -107,7 +125,7 @@ class ZeroList(LinkedList[T]):
     >>>     raise e
     >>> try:
     >>>     zero_list.any = 1
-    >>> except ValueError:
+    >>> except AttributeError:
     >>>     print('expected error')
     >>> except Exception as e:
     >>>     raise e
@@ -140,7 +158,7 @@ class ZeroList(LinkedList[T]):
         return False
 
     def __setattr__(self, key, value):
-        raise ValueError('empty list is readonly')
+        raise AttributeError('Empty list is readonly.')
 
 
 zero_list = ZeroList()

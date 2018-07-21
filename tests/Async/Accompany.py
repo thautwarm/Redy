@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Async_Accompany(unittest.TestCase):
-    def test_1720139550536(self):
+    @pytest.fixture(autouse=True)
+    def test_2427484188824(self):
         from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
         from Redy.Tools import Path
         import time

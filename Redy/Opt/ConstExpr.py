@@ -1,13 +1,6 @@
-"""
+import warnings
 
-@feature  # use default features: const, constexpr, macro
-def f():
-    pass
-
-@feature(service1)
-def f():
-    pass
-"""
+warnings.warn("The module Redy.Opt.ConstExpr is deprecated. Use Redy.Opt.Feature instead.", DeprecationWarning, stacklevel=2)
 import ast
 import inspect
 import opcode
@@ -16,8 +9,7 @@ import textwrap
 import types
 from typing import Mapping
 from collections import OrderedDict
-import warnings
-warnings.warn("The module Redy.Opt.ConstExpr is deprecated. Use Redy.Opt.Feature instead.", DeprecationWarning)
+
 __all__ = ['ConstToken', 'constexpr', 'const', 'macro', 'optimize']
 
 

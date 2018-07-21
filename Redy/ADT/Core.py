@@ -55,13 +55,11 @@ def data(cls_def: type):
 
     new_cls_def.__slots__ = ['__inst_str__', '__structure__']
 
-    if not hasattr(new_cls_def, '__str__') or isinstance(new_cls_def.__str__, BuiltinMethod):
-        def __str__(self):
+    if not hasattr(new_cls_def, '__repr__') or isinstance(new_cls_def.__repr__, BuiltinMethod):
+        def __repr__(self):
             return f'({self.__inst_str__})'
 
-        new_cls_def.__str__ = __str__
-
-    new_cls_def.__repr__ = new_cls_def.__str__
+        new_cls_def.__repr__ = __repr__
 
     def __destruct__(self):
         return self.__structure__

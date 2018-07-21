@@ -1,1 +1,3 @@
-from .test_all import *
+from . import *
+if __name__ == '__main__':
+    unittest.main()

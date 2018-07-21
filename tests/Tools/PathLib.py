@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Tools_PathLib(unittest.TestCase):
-    def test_1722268426792(self):
+    @pytest.fixture(autouse=True)
+    def test_2427465409144(self):
         from Redy.Tools import Path
         p = Path('.')
         p.abs()

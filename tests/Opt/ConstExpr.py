@@ -1,8 +1,10 @@
 from Redy.Typing import *
 
 import unittest
+import pytest
 class Test_Redy_Opt_ConstExpr(unittest.TestCase):
-    def test_1720140544024(self):
+    @pytest.fixture(autouse=True)
+    def test_2427485067608(self):
         from Redy.Opt.ConstExpr import constexpr, const, optimize, macro
         import dis
         a = 1; b = ""; c = object()
