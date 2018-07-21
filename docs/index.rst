@@ -10,6 +10,7 @@ Welcome to Redy's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   ADT
 
 
 Indices and tables

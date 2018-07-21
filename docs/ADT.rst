@@ -68,6 +68,9 @@ Preview
     print(List.Nil)
     print(isinstance(List.Nil, List))
     print(List.Nil << 1 << 2 << 3)
+    tag, head, tail = List.Nil << 1 << 2
+    assert head == 2
+    assert tail == List.Nil << 1
 
 Output:
 
@@ -150,12 +153,21 @@ If you construct two :code:`Discrete`  objects with the same components, actuall
 An example of :code:`Discrete`  object is a natural number.
 
 
-Enum
+Others
 ------------
 
 
-For ADTs are tagged unions, some features in ML languages could be also effective here.
+For ADTs are tagged unions, some features in ML languages could be also effective here. For example, we have intuitive enumerations:
 
+.. code ::
 
+    @data
+    class Enum:
+        a: 'A'
+        b: 'B'
+        c: 'C'
 
+    assert isinstance(Enum.a, Enum)
+    assert Enum.b is Enum.b  # just use `is` to apply fast comparison.
+    assert str(Enum.a) == 'A'
 

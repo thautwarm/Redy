@@ -1,6 +1,6 @@
 from .common import *
 import warnings
-
+from copy import deepcopy
 IsExpr = bool
 
 
@@ -79,9 +79,9 @@ class Macro(ASTService):
         with transformer.use_service(macro_expanding_application):
             transformer.setup_env()
             if is_expr:
-                ret: ast.Return = transformer.just_apply_ast_transformation(macro.body[-1], setup_env=False)
+                ret: ast.Return = transformer.just_apply_ast_transformation(deepcopy(macro.body[-1]), setup_env=False)
                 return ret.value
-            res = [transformer.just_apply_ast_transformation(each, setup_env=False) for each in macro.body]
+            res = [transformer.just_apply_ast_transformation(each, setup_env=False) for each in deepcopy(macro.body)]
             return res
 
     def _expand_stmt(self, elem: ast.AST):
@@ -101,10 +101,10 @@ class Macro(ASTService):
         with transformer.use_service(macro_expanding_application):
             transformer.setup_env()
             if is_expr:
-                ret: ast.Return = transformer.just_apply_ast_transformation(macro.body[-1], setup_env=False)
+                ret: ast.Return = transformer.just_apply_ast_transformation(deepcopy(macro.body[-1]), setup_env=False)
                 expr.value = ret
                 return expr
-            res = [transformer.just_apply_ast_transformation(each, setup_env=False) for each in macro.body]
+            res = [transformer.just_apply_ast_transformation(each, setup_env=False) for each in deepcopy(macro.body)]
             return res
 
 
