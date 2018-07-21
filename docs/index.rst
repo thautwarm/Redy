@@ -11,6 +11,8 @@ Welcome to Redy's documentation!
    :caption: Contents:
 
    ADT
+   Magic
+   MetaProgramming
 
 
 Indices and tables

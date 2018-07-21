@@ -26,16 +26,8 @@ Singleton Class
 
 
 
-
-
 Constant Return Function
 ------------------------------
-
-
-
-
-Custom Initialized Singleton Class
-----------------------------------------------
 
 
 

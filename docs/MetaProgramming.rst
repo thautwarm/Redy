@@ -54,7 +54,7 @@ Examples
 
 Tips:
 
-1. You can create multiple :code:`Macro` object to implement **macro on macro**.
+1. You can create multiple :code:`Macro` objects to implement **macro on macro**.
 2. The implementation of Python Macro is trivial under Redy's Feature Service System, you can
    play with it to try something really crazy.
 
@@ -87,7 +87,7 @@ Tips:
         return ret
 
 
-* The most effective, elegant and robust :code:`goto` in Python
+* The most efficient, elegant and robust :code:`goto` in Python
 
 
 .. code :: python
@@ -121,6 +121,6 @@ Tips:
 
 
 
-This :code:`goto` is quite fast and safe, but you should only perform it somewhere actually matches the use case of :code:`goto` .
+This :code:`goto` is quite efficient and safe, but you should only perform it somewhere actually matches the use case of :code:`goto` .
 
 
