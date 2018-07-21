@@ -14,5 +14,3 @@ class TestAll(unittest.TestCase):
 
 from tests.test_constexpr import *
 from tests.test_goto import *
-
-
