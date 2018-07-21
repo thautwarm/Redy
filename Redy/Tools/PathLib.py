@@ -63,7 +63,7 @@ def _convert_to_path(it):
 def _convert_to_str(it):
     if isinstance(it, str):
         return it
-    return Path(it)
+    return str(it)
 
 
 class Path:
@@ -106,17 +106,19 @@ class Path:
 
         self._path = path_split(os.path.abspath(path_join(path_sections)))
 
+    def __repr__(self):
+        return '<Path: {!r}>'.format(str(self))
+
     def __contains__(self, item):
         if isinstance(item, str):
             return item in (each[-1] for each in self.list_dir())
-
         return item in self.list_dir()
 
     def __iter__(self):
         yield from self._path
 
     def __eq__(self, other: Union[str, 'Path']):
-        return str(self) == _convert_to_str(other)
+        return str(self) == _convert_to_str(_convert_to_path(other))
 
     def exists(self) -> bool:
         return os.path.exists(str(self))

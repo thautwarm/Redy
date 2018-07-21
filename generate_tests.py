@@ -52,8 +52,11 @@ def collect_docstrings(each):
 def generate_doc_for(module: Mapping[str, object]):
     path = Path(module.__file__)
     root = path
+
     while 'README.md' not in root.parent().list_dir():
+        print(root.parent().list_dir())
         root = root.parent()
+
     directory = root.parent().__str__()
     path = Path(directory, 'tests', str(path)[len(str(root)) + 1:])
     print(f'generating the test script for {path}')

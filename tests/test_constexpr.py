@@ -5,7 +5,7 @@ import unittest
 
 class TestConstExpr(unittest.TestCase):
 
-    def test(self):
+    def test_constexpr(self):
         a = 1
 
         @feature(const, constexpr)
