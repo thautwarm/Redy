@@ -1,9 +1,11 @@
 from Redy.Opt import *
 from dis import dis
+import pytest
 import unittest
 
 
 class TestMacro(unittest.TestCase):
+    @pytest.fixture(autouse=True)
     def test_macro(self):
         macro = Macro()
 
@@ -32,3 +34,7 @@ class TestMacro(unittest.TestCase):
             macro_example2()
 
         test_macro()
+
+
+if __name__ == '__main__':
+    unittest.main()

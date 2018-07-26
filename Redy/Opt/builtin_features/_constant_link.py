@@ -14,7 +14,6 @@ class ConstDecl(ASTService):
     def __getitem__(self, item):
         return item
 
-
     def get_dispatch(self, elem: ast.AST) -> typing.Optional[typing.Callable[[ast.AST], ast.AST]]:
         if isinstance(elem, ast.Name) and elem.id in self.const_symbols:
             return self.replace_symbol
@@ -67,7 +66,6 @@ _const_place = opcode.opmap['LOAD_NAME'], opcode.opmap['LOAD_GLOBAL']
 
 
 class ConstLink(BCService):
-
     current_ctx: CompilingTimeContext = RequestContext()
     const_symbols: typing.Dict[str, str] = Require("const.symbols", dict)
 

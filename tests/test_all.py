@@ -14,3 +14,4 @@ from tests.Magic.Classic import *
 from tests.ADT.Core import *
 # from tests.Opt.ConstExpr import *
 from tests.test_macro import *
+from tests.test_asstore import *

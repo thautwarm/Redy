@@ -1,5 +1,6 @@
 from Redy.Opt import *
 import unittest
+import pytest
 from dis import dis
 
 
@@ -152,6 +153,7 @@ def very_big_loop(x):
 
 class TestGoto(unittest.TestCase):
 
+    @pytest.fixture(autouse=True)
     def test_loop(self):
         dis(very_big_loop)
 

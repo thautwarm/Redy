@@ -1,10 +1,12 @@
 from Redy.Opt import constexpr, const, feature
 import dis
 import unittest
+import pytest
 
 
 class TestConstExpr(unittest.TestCase):
 
+    @pytest.fixture(autouse=True)
     def test_constexpr(self):
         a = 1
 

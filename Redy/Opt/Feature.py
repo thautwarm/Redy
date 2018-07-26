@@ -278,18 +278,32 @@ class _ConstClosure(BCService):
 _internal_feature = Feature()
 
 
-def get_ast(code: types.CodeType):
+def get_ast(code, col_offset=None, first_lineno=None):
     # fix col_offset if `func` not in the top level of module.
-    src_code: str = inspect.getsource(code)
-    _space = _whitespace.match(src_code)
+    if isinstance(code, ast.AST):
+        node = code
+    else:
+        if isinstance(code, str):
+            src_code = code
+        else:
+            src_code: str = inspect.getsource(code)
 
-    col_offset = 0
-    if _space:  # the source code's column offset is not 0.
-        col_offset = _space.span()[1]  # get indentation of source code
-        # perform dedentation
-        src_code = '\n'.join(each[col_offset:] for each in src_code.splitlines())
+        _space = _whitespace.match(src_code)
 
-    node = ast.parse(src_code)
-    first_lineno = code.co_firstlineno
+        col_offset = 0
+        if _space:  # the source code's column offset is not 0.
+            col_offset = _space.span()[1]  # get indentation of source code
+            # perform dedentation
+            src_code = '\n'.join(each[col_offset:] for each in src_code.splitlines())
+
+        node = ast.parse(src_code)
+
+        if isinstance(code, types.CodeType):
+            first_lineno = code.co_firstlineno
+
+    if first_lineno is None:
+        first_lineno = 0
+    if col_offset is None:
+        col_offset = 0
     # visit the ast and fix the lineno and col_offset.
     return _internal_feature.apply_external_ast_service(node, _LocationFix(first_lineno, col_offset))

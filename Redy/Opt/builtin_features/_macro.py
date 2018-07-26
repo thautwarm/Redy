@@ -1,6 +1,7 @@
 from .common import *
 import warnings
 from copy import deepcopy
+
 IsExpr = bool
 
 
@@ -12,15 +13,27 @@ class Macro(ASTService):
         self.inner_transformer = Feature()
         self.macro_namespace = macros if macros else {}
 
-    def expr(self, func):
-        mod: ast.Module = ast.parse(func) if isinstance(func, str) else  get_ast(func.__code__)
-        self._define_expr_macro(mod.body[0])
-        return func
+    def _runtime_define(self, is_expr: bool) -> typing.Callable[
+        [typing.Union[types.FunctionType, str, types.CodeType, ast.AST]], ast.FunctionDef]:
+        define = self._define_expr_macro if is_expr else self._define_stmt_macro
 
-    def stmt(self, func):
-        mod: ast.Module = ast.parse(func) if isinstance(func, str) else get_ast(func.__code__)
-        self._define_stmt_macro(mod.body[0])
-        return func
+        def ret(func):
+            fn_ast = get_ast(func)
+            if isinstance(fn_ast, ast.Module):
+                fn_ast = fn_ast.body[0]
+
+            define(fn_ast)
+            return fn_ast
+
+        return ret
+
+    @property
+    def expr(self):
+        return self._runtime_define(is_expr=True)
+
+    @property
+    def stmt(self):
+        return self._runtime_define(is_expr=False)
 
     def get_dispatch(self, elem):
         if isinstance(elem, ast.FunctionDef):
