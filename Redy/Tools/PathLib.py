@@ -13,16 +13,20 @@ __all__ = ['Path']
 _encodings = ['utf8', 'gb18030', 'gbk', 'latin-1', 'utf16']
 
 
-def default_auto_open(encodings, file, mode):
+def default_auto_open(encodings, file: 'Path', mode):
+    path = str(file)
     for each in encodings:
         try:
-            stream = open(file, 'r', encoding=each)
-            stream.read(1)
-            stream.seek(0)
-            if mode == 'r':
-                return stream
-            stream.close()
-            return open(file, mode, encoding=each)
+            if file.exists():
+                stream = open(path, 'r', encoding=each)
+                stream.read(1)
+                stream.seek(0)
+                if mode == 'r':
+                    return stream
+                stream.close()
+            elif mode == 'r':
+                raise FileNotFoundError(path)
+            return open(path, mode, encoding=each)
 
         except UnicodeError:
             continue
@@ -269,20 +273,20 @@ class Path:
         :return: the same as the return of ``builtins.open`.
 
         """
-        path = str(self)
+
         if 'b' in mode:
-            return io.open(path, mode)
+            return io.open(str(self), mode)
 
         if callable(encoding):
-            return self.open(mode, encoding=encoding(path))
+            return self.open(mode, encoding=encoding(str(self)))
 
         if isinstance(encoding, (tuple, list, set)):
-            return default_auto_open(encoding, path, mode)
+            return default_auto_open(encoding, self, mode)
 
         if encoding == 'auto':
-            return default_auto_open(_encodings, path, mode)
+            return default_auto_open(_encodings, self, mode)
 
-        return io.open(path, mode, encoding=encoding)
+        return io.open(str(self), mode, encoding=encoding)
 
     def delete(self):
         if self.is_dir():
