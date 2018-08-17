@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Tools_TypeInterface(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802770088648(self):
+    def test_2309557069768(self):
 
 
         from Redy.Tools.TypeInterface import Module

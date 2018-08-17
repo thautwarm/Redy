@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Magic_Pattern(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802788660792(self):
+    def test_2309575515096(self):
         from Redy.Magic.Pattern import Pattern
         @Pattern
         def f(x):

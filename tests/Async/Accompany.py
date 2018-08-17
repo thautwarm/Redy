@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Async_Accompany(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802788511640(self):
+    def test_2309575476392(self):
         from Redy.Async.Accompany import Accompany, Delegate, ThreadExit
         from Redy.Tools import Path
         import time

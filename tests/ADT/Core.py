@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_ADT_Core(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802788661752(self):
+    def test_2309575515976(self):
         from Redy.ADT.Core import data
         from Redy.Magic.Classic import cast
         from Redy.ADT.traits import ConsInd, Discrete

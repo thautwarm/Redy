@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Collections_LinkedList(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802788510040(self):
+    def test_2309575106216(self):
         from Redy.Collections.LinkedList import LinkedList
         x = LinkedList(1)
         x.next = [1, 2, 3]

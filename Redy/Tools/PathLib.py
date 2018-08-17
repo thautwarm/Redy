@@ -4,15 +4,17 @@ import io
 import functools
 import typing
 import time
+import collections
+
 from ..Typing import *
 
 __all__ = ['Path']
 
-_encodings = ['utf8', 'gb18030', 'gbk', 'latin-1']
+_encodings = ['utf8', 'gb18030', 'gbk', 'latin-1', 'utf16']
 
 
-def default_auto_open(file, mode):
-    for each in _encodings:
+def default_auto_open(encodings, file, mode):
+    for each in encodings:
         try:
             stream = open(file, 'r', encoding=each)
             stream.read(1)
@@ -102,7 +104,8 @@ class Path:
         if path_sections:  # check if it's `~/somewhere`
             head, *tail = path_split(path_sections[0])
             if head == '~':
-                path_sections = (os.path.expanduser('~'), *tail, *path_sections[1:])
+                path_sections = (os.path.expanduser('~'), *tail,
+                                 *path_sections[1:])
 
         self._path = path_split(os.path.abspath(path_join(path_sections)))
 
@@ -126,7 +129,10 @@ class Path:
     def is_dir(self) -> bool:
         return os.path.isdir(str(self))
 
-    def move_to(self, destination: Union[str, 'Path'], exception_handler: Optional[Callable[[Exception], None]] = None):
+    def move_to(
+            self,
+            destination: Union[str, 'Path'],
+            exception_handler: Optional[Callable[[Exception], None]] = None):
         if isinstance(destination, str):
             destination = Path(destination)
         try:
@@ -145,12 +151,14 @@ class Path:
                                 each_to.mkdir()
                             _move_to(each, each_to)
                         else:
-                            with each.open('rb') as read_item, to_.into(relative).open('wb') as write_item:
+                            with each.open('rb') as read_item, to_.into(
+                                    relative).open('wb') as write_item:
                                 write_item.write(read_item.read())
 
                 _move_to(self, destination)
             else:
-                with destination.into(relative).open('wb') as write_item, self.open('rb') as read_item:
+                with destination.into(relative).open(
+                        'wb') as write_item, self.open('rb') as read_item:
                     write_item.write(read_item.read())
         except Exception as e:
             if exception_handler is None:
@@ -204,7 +212,9 @@ class Path:
         """
         return str(self)
 
-    def relative(self, start: typing.Optional[typing.Union['Path', str]] = None) -> str:
+    def relative(self,
+                 start: typing.Optional[typing.Union['Path', str]] = None
+                 ) -> str:
         """
         :param start: an object of NoneType or Path or str.
         :return: a string
@@ -233,7 +243,8 @@ class Path:
     def __truediv__(self, other: str) -> 'Path':
         return Path(*self._path, *path_split(other), no_check=True)
 
-    def __getitem__(self, item: Union[Callable[[str], bool], int]) -> Optional[str]:
+    def __getitem__(self,
+                    item: Union[Callable[[str], bool], int]) -> Optional[str]:
         if callable(item):
             return next(filter(item, self._path), None)
 
@@ -242,27 +253,36 @@ class Path:
     def __str__(self):
         return path_join(self._path)
 
-    def open(self, mode, encoding='auto'):
+    def open(self,
+             mode='r',
+             encoding: typing.Union[list, tuple, set, str,
+                                    typing.Callable] = 'auto'):
         """
         :param mode: the same as the argument `mode` of `builtins.open`
         :param encoding: similar to the argument `encoding` of `builtins.open` which is compatible to io.open.
-                         - `encoding='auto'` to automatically detect the encoding.n
+                         - `encoding='auto'` to automatically detect the encoding.
+                         - `encoding is a <list|tuple|set>` to automatically detect the encoding from the limited collection.
                          - `encoding=<function>`
                             If you want to apply custom encoding detection method, you could pass
                             an encoding detecting function `(filename: str) -> (encoding: str)` here
                             which receives the filename and returns encoding of the file.
         :return: the same as the return of ``builtins.open`.
+
         """
-        if 'b' in mode or 'w' in mode:
-            return io.open(str(self), mode)
+        path = str(self)
+        if 'b' in mode:
+            return io.open(path, mode)
 
         if callable(encoding):
-            encoding = encoding(str(self))
+            return self.open(mode, encoding=encoding(path))
+
+        if isinstance(encoding, (tuple, list, set)):
+            return default_auto_open(encoding, path, mode)
 
         if encoding == 'auto':
-            return default_auto_open(str(self), mode)
+            return default_auto_open(_encodings, path, mode)
 
-        return io.open(str(self), mode, encoding=encoding)
+        return io.open(path, mode, encoding=encoding)
 
     def delete(self):
         if self.is_dir():

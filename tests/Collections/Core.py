@@ -4,7 +4,7 @@ import unittest
 import pytest
 class Test_Redy_Collections_Core(unittest.TestCase):
     @pytest.fixture(autouse=True)
-    def test_1802769982952(self):
+    def test_2309556975560(self):
         from Redy.Collections.Core import Monad
         def i2f(x: int) -> float: return x * 1.0
         def f2s(x: float) -> str: return str(x)
