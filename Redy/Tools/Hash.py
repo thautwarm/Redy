@@ -1,14 +1,19 @@
 import sys
 if sys.version_info < (3, 6):
     ModuleNotFoundError = ImportError
+from ..settings import numba_hash
 
-
-try:
-    import numpy as np
-    from ._native_hash import *
-except ModuleNotFoundError as e:
-    import warnings
-    warnings.warn("No NumPy package found, the standard hashing algorithm wouldn't be used for truncating in Python costs too much.", ImportWarning)
+if numba_hash:
+    try:
+        import numpy as np
+        from ._native_hash import *
+    except ModuleNotFoundError as e:
+        import warnings
+        warnings.warn(
+            "No NumPy package found, the standard hashing algorithm wouldn't be used for truncating in Python costs too much.",
+            ImportWarning)
+        from ._py_hash import *
+else:
     from ._py_hash import *
 
 # def tuple_hash(v):
@@ -28,5 +33,3 @@ except ModuleNotFoundError as e:
 #     if x == -1:
 #         return -2
 #     return x
-
-
