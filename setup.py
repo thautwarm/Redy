@@ -19,7 +19,7 @@ setup(name='Redy',
       author='thautwarm',
       author_email='twshere@outlook.com',
       include_package_data=True,
-      install_requires=['bytecode'],
+      install_requires=['bytecode>=0.7'],
       packages=['Redy', 'Redy.Async', 'Redy.Collections', 'Redy.Magic', 'Redy.Tools', 'Redy.ADT', 'Redy.Opt', 'Redy.Opt.builtin_features'],
       platforms='any',
       classifiers=[

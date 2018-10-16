@@ -6,6 +6,7 @@ import typing
 import opcode
 import dis
 import abc
+import sys
 import bytecode
 from bytecode import concrete
 from collections import Mapping, Hashable
@@ -78,7 +79,8 @@ def _ConvertBytecodeToConcrete(self, code):
     self.varnames = []
 
 
-concrete._ConvertBytecodeToConcrete.__init__ = _ConvertBytecodeToConcrete
+if bytecode.__version__ < '0.8':
+    concrete._ConvertBytecodeToConcrete.__init__ = _ConvertBytecodeToConcrete
 
 
 class BCService(Service):

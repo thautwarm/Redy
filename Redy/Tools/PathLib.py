@@ -113,20 +113,6 @@ class Path:
 
         self._path = path_split(os.path.abspath(path_join(path_sections)))
 
-    def __repr__(self):
-        return '<Path: {!r}>'.format(str(self))
-
-    def __contains__(self, item):
-        if isinstance(item, str):
-            return item in (each[-1] for each in self.list_dir())
-        return item in self.list_dir()
-
-    def __iter__(self):
-        yield from self._path
-
-    def __eq__(self, other: Union[str, 'Path']):
-        return str(self) == _convert_to_str(_convert_to_path(other))
-
     def exists(self) -> bool:
         return os.path.exists(str(self))
 
@@ -216,6 +202,9 @@ class Path:
         """
         return str(self)
 
+    def to_str(self):
+        return str(self)
+
     def relative(self,
                  start: typing.Optional[typing.Union['Path', str]] = None
                  ) -> str:
@@ -239,28 +228,20 @@ class Path:
         """
         if start is None:
             return os.path.split(str(self))[1]
+        if isinstance(start, Path):
+            start = str(start)
         return os.path.relpath(str(self), start)
+
+    def split_ext(self):
+        return os.path.splitext(str(self))
 
     def parent(self) -> 'Path':
         return Path(*self._path[:-1], no_check=True)
 
-    def __truediv__(self, other: str) -> 'Path':
-        return Path(*self._path, *path_split(other), no_check=True)
-
-    def __getitem__(self,
-                    item: Union[Callable[[str], bool], int]) -> Optional[str]:
-        if callable(item):
-            return next(filter(item, self._path), None)
-
-        return self._path[item]
-
-    def __str__(self):
-        return path_join(self._path)
-
     def open(self,
              mode='r',
-             encoding: typing.Union[list, tuple, set, str,
-                                    typing.Callable] = 'auto'):
+             encoding: typing.Union[list, tuple, set, str, typing.
+                                    Callable] = 'auto'):
         """
         :param mode: the same as the argument `mode` of `builtins.open`
         :param encoding: similar to the argument `encoding` of `builtins.open` which is compatible to io.open.
@@ -317,3 +298,30 @@ class Path:
                 yield from each.collect(cond)
             else:
                 yield each
+
+    def __truediv__(self, other: str) -> 'Path':
+        return Path(*self._path, *path_split(other), no_check=True)
+
+    def __getitem__(self,
+                    item: Union[Callable[[str], bool], int]) -> Optional[str]:
+        if callable(item):
+            return next(filter(item, self._path), None)
+
+        return self._path[item]
+
+    def __str__(self):
+        return path_join(self._path)
+
+    def __repr__(self):
+        return '<Path: {!r}>'.format(str(self))
+
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in (each[-1] for each in self.list_dir())
+        return item in self.list_dir()
+
+    def __iter__(self):
+        yield from self._path
+
+    def __eq__(self, other: Union[str, 'Path']):
+        return str(self) == _convert_to_str(_convert_to_path(other))
