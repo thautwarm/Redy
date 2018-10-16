@@ -7,14 +7,9 @@ import abc
 import textwrap
 import typing
 import re
-
+import bytecode
 from .basic import Service
-
-try:
-    from .bytecode_api import BCService, Bytecode
-    import bytecode
-except:
-    pass
+from .bytecode_api import BCService, Bytecode
 
 _whitespace = re.compile('[ \t]+')
 

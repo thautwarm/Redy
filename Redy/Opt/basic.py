@@ -1,18 +1,13 @@
-import typing, abc
+import typing
+import abc
 import ast
 import opcode
 import collections
-
 from .utils import *
-from Redy.Magic.Classic import const_return
 import inspect
+from Redy.Magic.Classic import const_return
+import bytecode
 
-try:
-    import bytecode
-
-    _has_bytecode = True
-except:
-    _has_bytecode = False
 
 try:
     from .Feature import Feature

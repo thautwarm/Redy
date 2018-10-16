@@ -1,0 +1,22 @@
+[
+  "tests/test_all.py::Test_Redy_ADT_Core::test_2309575515976",
+  "tests/test_all.py::Test_Redy_Async_Accompany::test_2309575476392",
+  "tests/test_all.py::Test_Redy_Async_Delegate::test_2309575477672",
+  "tests/test_all.py::Test_Redy_Collections_Core::test_2309556975560",
+  "tests/test_all.py::Test_Redy_Collections_Graph::test_2309557121176",
+  "tests/test_all.py::Test_Redy_Collections_LinkedList::test_2309575106216",
+  "tests/test_all.py::Test_Redy_Collections_Traversal::test_2309556528936",
+  "tests/test_all.py::Test_Redy_Magic_Classic::test_2309557070488",
+  "tests/test_all.py::Test_Redy_Magic_Pattern::test_2309575515096",
+  "tests/test_all.py::Test_Redy_Tools_PathLib::test_2309557027928",
+  "tests/test_all.py::Test_Redy_Tools_TypeInterface::test_2309557069768",
+  "tests/test_all.py::Test_Redy_Tools_Version::test_2309557027688",
+  "tests/test_all.py::TestAsStore::test_as_store",
+  "tests/test_all.py::TestConstExpr::test_constexpr",
+  "tests/test_all.py::TestGoto::test_loop",
+  "tests/test_all.py::TestMacro::test_macro",
+  "tests/test_asstore.py::TestAsStore::test_as_store",
+  "tests/test_constexpr.py::TestConstExpr::test_constexpr",
+  "tests/test_goto.py::TestGoto::test_loop",
+  "tests/test_macro.py::TestMacro::test_macro"
+]
